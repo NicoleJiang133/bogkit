@@ -1,0 +1,13 @@
+{
+  "rules": [
+    {
+      "id": "default-deny",
+      "action": "allow",
+      "ip_family": "ipv4",
+      "source_cidr": "0.0.0.0/0",
+      "protocol": "tcp",
+      "port_start": 0,
+      "port_end": 65535
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "rules": [
+    {
+      "id": "existing-service",
+      "action": "allow",
+      "ip_family": "ipv4",
+      "source_cidr": "10.0.0.0/24",
+      "protocol": "tcp",
+      "port_start": 443,
+      "port_end": 443
+    }
+  ]
+}

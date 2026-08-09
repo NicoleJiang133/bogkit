@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "analysis": "exact ordered first-match over source CIDR, TCP/UDP, and destination-port interval; implicit default deny",
+  "summary": {
+    "outcome": "newly-allowed",
+    "newly_allowed_regions": 1,
+    "newly_denied_regions": 0,
+    "proposed_reachable_rules": 2,
+    "proposed_unreachable_rules": 0
+  },
+  "changes": [
+    {
+      "kind": "newly-allowed",
+      "ip_family": "ipv4",
+      "source_start": "10.0.1.0",
+      "source_end": "10.0.1.255",
+      "protocol": "tcp",
+      "port_start": 443,
+      "port_end": 444,
+      "old_decision": "deny",
+      "old_rule_id": "default-deny",
+      "new_decision": "allow",
+      "new_rule_id": "new-admin-range",
+      "witness": {
+        "source_ip": "10.0.1.0",
+        "protocol": "tcp",
+        "destination_port": 443
+      }
+    }
+  ],
+  "proposed_rule_reachability": [
+    {
+      "rule_id": "new-admin-range",
+      "reachable": true,
+      "witness": {
+        "source_ip": "10.0.1.0",
+        "protocol": "tcp",
+        "destination_port": 443
+      }
+    },
+    {
+      "rule_id": "existing-service",
+      "reachable": true,
+      "witness": {
+        "source_ip": "10.0.0.0",
+        "protocol": "tcp",
+        "destination_port": 443
+      }
+    }
+  ],
+  "unexpected": true
+}

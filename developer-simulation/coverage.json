@@ -452,6 +452,46 @@
       "components_used": [],
       "outcome": "no_fit",
       "report": "reports/2026-08-08.md"
+    },
+    {
+      "date": "2026-08-09",
+      "slug": "incremental-syntax-highlighting",
+      "persona": "desktop editor maintainer, three years of production Rust experience",
+      "domain": "incremental UTF-8 syntax highlighting and editor tooling",
+      "constraints": [
+        "exact equality with the authoritative full lexer after every valid edit",
+        "10 MiB and 200,000-line document with 2,000 deterministic edits",
+        "UTF-8 byte-coordinate safety and unchanged state after invalid edits",
+        "64 MiB incremental-index target and byte-for-byte reproducibility"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [],
+      "outcome": "no_fit",
+      "report": "reports/2026-08-09.md"
+    },
+    {
+      "date": "2026-08-09",
+      "slug": "firewall-policy-impact",
+      "persona": "network release-tooling engineer, Rust beginner with production Go experience",
+      "domain": "exact ordered firewall policy impact analysis",
+      "constraints": [
+        "exact first-match change regions and proposed-rule reachability",
+        "IPv4 and IPv6 policies with up to 50,000 ordered rules",
+        "deterministic replayable witnesses and no partial or stale verdict",
+        "15-second and 256 MiB target on the declared local machine"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [],
+      "outcome": "no_fit",
+      "report": "reports/2026-08-09.md"
     }
   ],
   "recurring_findings": [

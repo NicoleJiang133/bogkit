@@ -1,0 +1,22 @@
+{
+  "rules": [
+    {
+      "id": "duplicate",
+      "action": "allow",
+      "ip_family": "ipv4",
+      "source_cidr": "10.0.0.1/24",
+      "protocol": "tcp",
+      "port_start": 9000,
+      "port_end": 8000
+    },
+    {
+      "id": "duplicate",
+      "action": "deny",
+      "ip_family": "ipv6",
+      "source_cidr": "2001:db8::/32",
+      "protocol": "udp",
+      "port_start": 53,
+      "port_end": 53
+    }
+  ]
+}
