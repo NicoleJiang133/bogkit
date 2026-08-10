@@ -1,0 +1,10 @@
+[package]
+name = "repair-cafe-fold-trial"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+fold = { path = "../../../fold" }
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }

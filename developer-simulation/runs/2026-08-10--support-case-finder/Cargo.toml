@@ -1,0 +1,12 @@
+[package]
+name = "support-case-finder"
+version = "0.1.0"
+edition = "2024"
+publish = false
+default-run = "support-case-finder"
+
+[dependencies]
+anny = { path = "../../../anny" }
+ese = { path = "../../../ese", features = ["dim-64", "quant-8"] }
+fold = { path = "../../../fold" }
+serde = { version = "1", features = ["derive"] }

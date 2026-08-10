@@ -492,13 +492,59 @@
       "components_used": [],
       "outcome": "no_fit",
       "report": "reports/2026-08-09.md"
+    },
+    {
+      "date": "2026-08-10",
+      "slug": "support-case-finder",
+      "persona": "customer-support platform developer, production TypeScript expert with six months of Rust experience",
+      "domain": "bilingual advisory duplicate-case retrieval beside authoritative PostgreSQL",
+      "constraints": [
+        "75,000 privacy-scrubbed English and Spanish cases with 2,000 daily changes",
+        "at least 72 percent recall at five on a private 200-query set and deterministic exact source references",
+        "2-core and 2 GiB CPU-only container with no query-time network access",
+        "failed refresh preserves the prior complete replaceable local index"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "outcome": "local_proof_only_no_production_fit",
+      "report": "reports/2026-08-10.md"
+    },
+    {
+      "date": "2026-08-10",
+      "slug": "repair-cafe-kiosk",
+      "persona": "repair-cafe volunteer developer, strong Python and SQL with intermediate Rust experience",
+      "domain": "offline single-writer tool-lending ledger and current inventory",
+      "constraints": [
+        "8,000 items, 1,200 borrowers, and 100,000 ordered historical events",
+        "atomic accepted-event and current-state updates with exact replay",
+        "fully offline single local data directory and 256 MiB process limit",
+        "embedded SQL baseline with familiar constraints, inspection, backup, and recovery"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [
+        "fold"
+      ],
+      "outcome": "no_fit",
+      "report": "reports/2026-08-10.md"
     }
   ],
   "recurring_findings": [
     {
       "id": "document-storage-and-concurrency-boundaries",
       "category": "documentation gap",
-      "independent_trial_count": 20,
+      "independent_trial_count": 22,
       "confidence": "high",
       "candidate": true,
       "summary": "The public onboarding should distinguish embedded source-of-truth use from external databases and calendar or cache body-store handoffs, external network authorities and cooperative filesystem protocols, horizontal or partitioned deployment, durable leases and ordered purges, strict disk quotas, raw-flash firmware and fixed controller images, atomic broker-offset ownership, exact recursive graph workloads, and bounded stateless stream or geometry transformations that do not benefit from durable state.",
@@ -523,13 +569,15 @@
         "fastq-barcode-spill",
         "parcel-delta-tiles",
         "caldav-recurrence",
-        "http-cache-revalidation"
+        "http-cache-revalidation",
+        "support-case-finder",
+        "repair-cafe-kiosk"
       ]
     },
     {
       "id": "component-selective-project-scaffold",
       "category": "API friction",
-      "independent_trial_count": 10,
+      "independent_trial_count": 11,
       "confidence": "high",
       "candidate": true,
       "summary": "Developers with Fold-only or no-component scenarios avoid the all-components starter or project scaffold because it adds unrelated crates and setup.",
@@ -544,21 +592,36 @@
         "fastq-barcode-spill",
         "parcel-delta-tiles",
         "caldav-recurrence",
-        "http-cache-revalidation"
+        "http-cache-revalidation",
+        "repair-cafe-kiosk"
       ]
     },
     {
       "id": "nameable-pipeline-and-reader-types",
       "category": "API friction",
-      "independent_trial_count": 3,
-      "confidence": "medium",
+      "independent_trial_count": 5,
+      "confidence": "high",
       "candidate": true,
       "summary": "Developers found composed pipeline and reader types difficult to name in ordinary reusable structs and helper signatures.",
       "smallest_improvement": "Document type-alias, function-pointer, and ordinary helper-signature patterns for composed pipelines and readers; do not infer a new type-erasure subsystem.",
       "sources": [
         "ci-lease-coordinator",
         "fraud-velocity-evaluation",
-        "homecare-gap-fill"
+        "homecare-gap-fill",
+        "support-case-finder",
+        "repair-cafe-kiosk"
+      ]
+    },
+    {
+      "id": "fold-wtx-panic-writer-poisoning",
+      "category": "correctness defect",
+      "independent_trial_count": 1,
+      "confidence": "high",
+      "candidate": true,
+      "summary": "Catching a panic resumed by Fold's write transaction preserves committed data but poisons Fjall's single-writer lock, so every later write in the same process panics.",
+      "smallest_improvement": "Drop the underlying write transaction before resuming the user panic, then add Stream and KeyedStream regressions that prove rollback and a successful later write.",
+      "sources": [
+        "support-case-finder"
       ]
     }
   ]
