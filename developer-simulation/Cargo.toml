@@ -5,3 +5,8 @@ members = ["runs/*"]
 [workspace.package]
 edition = "2024"
 publish = false
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+strip = true

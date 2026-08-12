@@ -582,13 +582,53 @@
       ],
       "outcome": "no_fit",
       "report": "reports/2026-08-11.md"
+    },
+    {
+      "date": "2026-08-12",
+      "slug": "dns-change-gate",
+      "persona": "hosting-platform reliability engineer with seven years of Go and shell and four months of Rust",
+      "domain": "offline authoritative-DNS change admission over immutable master-file snapshots",
+      "constraints": [
+        "named-checkzone remains authoritative and the prototype is advisory only",
+        "10,000 zones and two million records per snapshot under a four-core Linux and 256 MiB target",
+        "exact deterministic parsing, comparison, policy evidence, and fail-closed expansion limits",
+        "contained immutable input trees and atomic complete-report publication"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [],
+      "outcome": "no_fit",
+      "report": "reports/2026-08-12.md"
+    },
+    {
+      "date": "2026-08-12",
+      "slug": "midi-scheduler-rt-model",
+      "persona": "production C++ audio developer with Rust Book experience and no shipped Rust callback",
+      "domain": "hard-real-time MIDI event scheduling for a desktop sequencer",
+      "constraints": [
+        "200,000 events, 50,000 tempo nodes, exact 960 PPQN conversion, and variable callback blocks",
+        "zero callback allocation, locks, system calls, logging, or panic with fixed-capacity overload handling",
+        "deterministic transport safety, duplicate-token rejection, and off-thread plan publication",
+        "10 million callback latency target with C++ retained unless every production safety gate is proved"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [],
+      "outcome": "no_fit",
+      "report": "reports/2026-08-12.md"
     }
   ],
   "recurring_findings": [
     {
       "id": "document-storage-and-concurrency-boundaries",
       "category": "documentation gap",
-      "independent_trial_count": 24,
+      "independent_trial_count": 26,
       "confidence": "high",
       "candidate": true,
       "summary": "The public onboarding should distinguish embedded source-of-truth use from external databases and calendar or cache body-store handoffs, external network authorities and cooperative filesystem protocols, horizontal or partitioned deployment, durable leases and ordered purges, strict disk quotas, raw-flash firmware and fixed controller images, atomic broker-offset ownership, exact recursive graph workloads, and bounded stateless stream or geometry transformations that do not benefit from durable state.",
@@ -617,13 +657,15 @@
         "support-case-finder",
         "repair-cafe-kiosk",
         "cold-chain-repair",
-        "receiving-slot-admission"
+        "receiving-slot-admission",
+        "dns-change-gate",
+        "midi-scheduler-rt-model"
       ]
     },
     {
       "id": "component-selective-project-scaffold",
       "category": "API friction",
-      "independent_trial_count": 12,
+      "independent_trial_count": 14,
       "confidence": "high",
       "candidate": true,
       "summary": "Developers with Fold-only or no-component scenarios avoid the all-components starter or project scaffold because it adds unrelated crates and setup.",
@@ -640,7 +682,9 @@
         "caldav-recurrence",
         "http-cache-revalidation",
         "repair-cafe-kiosk",
-        "receiving-slot-admission"
+        "receiving-slot-admission",
+        "dns-change-gate",
+        "midi-scheduler-rt-model"
       ]
     },
     {
