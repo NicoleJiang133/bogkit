@@ -1,0 +1,11 @@
+{
+  "installations": [
+    {"service_point_id": 1, "installation_id": 1, "meter_id": 1, "installed_at": 0, "removed_at": null, "register_width": 6}
+  ],
+  "readings": [
+    {"service_point_id": 1, "meter_id": 1, "source_id": 10, "at": 0, "value_litres": 1, "kind": "actual", "supersedes": null},
+    {"service_point_id": 1, "meter_id": 1, "source_id": 10, "at": 0, "value_litres": 2, "kind": "actual", "supersedes": null}
+  ],
+  "billed_intervals": [],
+  "prior_adjustments": []
+}

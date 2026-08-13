@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "repairs": [
+    {
+      "service_point_id": 1,
+      "interval_id": 10001,
+      "old_usage_litres": 0,
+      "recomputed_usage_litres": 1,
+      "adjustment_litres": 1,
+      "source_reading_ids": [
+        101,
+        102
+      ],
+      "installation_ids": [
+        1001
+      ],
+      "installation_meter_ids": [
+        11
+      ],
+      "reason_code": "ROLLOVER_REPAIR"
+    },
+    {
+      "service_point_id": 2,
+      "interval_id": 20001,
+      "old_usage_litres": 100,
+      "recomputed_usage_litres": 110,
+      "adjustment_litres": 10,
+      "source_reading_ids": [
+        201,
+        203
+      ],
+      "installation_ids": [
+        2001
+      ],
+      "installation_meter_ids": [
+        21
+      ],
+      "reason_code": "CORRECTION_REPAIR"
+    },
+    {
+      "service_point_id": 2,
+      "interval_id": 20002,
+      "old_usage_litres": 100,
+      "recomputed_usage_litres": 90,
+      "adjustment_litres": -10,
+      "source_reading_ids": [
+        203,
+        204
+      ],
+      "installation_ids": [
+        2001
+      ],
+      "installation_meter_ids": [
+        21
+      ],
+      "reason_code": "CORRECTION_REPAIR"
+    },
+    {
+      "service_point_id": 3,
+      "interval_id": 30001,
+      "old_usage_litres": 100,
+      "recomputed_usage_litres": 120,
+      "adjustment_litres": 20,
+      "source_reading_ids": [
+        301,
+        302,
+        303,
+        304
+      ],
+      "installation_ids": [
+        3001,
+        3002
+      ],
+      "installation_meter_ids": [
+        31,
+        32
+      ],
+      "reason_code": "METER_REPLACEMENT_REPAIR"
+    },
+    {
+      "service_point_id": 6,
+      "interval_id": 60001,
+      "old_usage_litres": 70,
+      "recomputed_usage_litres": 80,
+      "adjustment_litres": 10,
+      "source_reading_ids": [
+        601,
+        602
+      ],
+      "installation_ids": [
+        6001
+      ],
+      "installation_meter_ids": [
+        61
+      ],
+      "reason_code": "RECOMPUTED_USAGE"
+    }
+  ],
+  "review_cases": [
+    {
+      "service_point_id": 4,
+      "reason_code": "AMBIGUOUS_REGISTER_REGRESSION",
+      "detail_ids": [
+        401,
+        402
+      ]
+    }
+  ]
+}

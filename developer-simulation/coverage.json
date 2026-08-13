@@ -622,13 +622,53 @@
       "components_used": [],
       "outcome": "no_fit",
       "report": "reports/2026-08-12.md"
+    },
+    {
+      "date": "2026-08-13",
+      "slug": "multi-carrier-return-refund-reconciler",
+      "persona": "commerce-platform backend developer with seven years of TypeScript and PostgreSQL and four months of Rust",
+      "domain": "advisory multi-carrier return and refund reconciliation over an authoritative PostgreSQL snapshot",
+      "constraints": [
+        "25,000 returns, 40,000 parcels, 70,000 authorized lines, and 250,000 source events",
+        "exact integer-unit and integer-cent conservation with no automatic payment side effect",
+        "duplicate, conflicting, corrected, split-parcel, substituted-item, and ambiguous payment evidence",
+        "byte-identical complete-report publication with a 60-second and 512 MiB local target"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [],
+      "outcome": "no_fit",
+      "report": "reports/2026-08-13.md"
+    },
+    {
+      "date": "2026-08-13",
+      "slug": "municipal-water-meter-billing-repair",
+      "persona": "municipal-utility data engineer with nine years of SQL and Python and one year of Rust",
+      "domain": "offline water-meter billing repair from authoritative cumulative-reading exports",
+      "constraints": [
+        "100,000 service points, 120,000 meters, two million readings, and 200,000 billed intervals",
+        "exact register rollover, meter replacement, supersession, provenance, and adjustment-only output",
+        "input-order and batch independence with per-service fail-closed ambiguity",
+        "complete prior-report preservation across validation failure and real process exits"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [],
+      "outcome": "no_fit",
+      "report": "reports/2026-08-13.md"
     }
   ],
   "recurring_findings": [
     {
       "id": "document-storage-and-concurrency-boundaries",
       "category": "documentation gap",
-      "independent_trial_count": 26,
+      "independent_trial_count": 28,
       "confidence": "high",
       "candidate": true,
       "summary": "The public onboarding should distinguish embedded source-of-truth use from external databases and calendar or cache body-store handoffs, external network authorities and cooperative filesystem protocols, horizontal or partitioned deployment, durable leases and ordered purges, strict disk quotas, raw-flash firmware and fixed controller images, atomic broker-offset ownership, exact recursive graph workloads, and bounded stateless stream or geometry transformations that do not benefit from durable state.",
@@ -659,7 +699,9 @@
         "cold-chain-repair",
         "receiving-slot-admission",
         "dns-change-gate",
-        "midi-scheduler-rt-model"
+        "midi-scheduler-rt-model",
+        "multi-carrier-return-refund-reconciler",
+        "municipal-water-meter-billing-repair"
       ]
     },
     {

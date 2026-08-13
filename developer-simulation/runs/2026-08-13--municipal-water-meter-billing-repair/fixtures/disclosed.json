@@ -1,0 +1,42 @@
+{
+  "installations": [
+    {"service_point_id": 3, "installation_id": 3002, "meter_id": 32, "installed_at": 1, "removed_at": null, "register_width": 8},
+    {"service_point_id": 1, "installation_id": 1001, "meter_id": 11, "installed_at": 0, "removed_at": null, "register_width": 6},
+    {"service_point_id": 6, "installation_id": 6001, "meter_id": 61, "installed_at": 0, "removed_at": null, "register_width": 6},
+    {"service_point_id": 2, "installation_id": 2001, "meter_id": 21, "installed_at": 0, "removed_at": null, "register_width": 6},
+    {"service_point_id": 3, "installation_id": 3001, "meter_id": 31, "installed_at": 0, "removed_at": 1, "register_width": 6},
+    {"service_point_id": 5, "installation_id": 5001, "meter_id": 51, "installed_at": 0, "removed_at": null, "register_width": 6},
+    {"service_point_id": 4, "installation_id": 4001, "meter_id": 41, "installed_at": 0, "removed_at": null, "register_width": 6}
+  ],
+  "readings": [
+    {"service_point_id": 2, "meter_id": 21, "source_id": 204, "at": 2, "value_litres": 300, "kind": "actual", "supersedes": null},
+    {"service_point_id": 3, "meter_id": 32, "source_id": 304, "at": 2, "value_litres": 80, "kind": "actual", "supersedes": null},
+    {"service_point_id": 1, "meter_id": 11, "source_id": 102, "at": 1, "value_litres": 0, "kind": "actual", "supersedes": null},
+    {"service_point_id": 5, "meter_id": 51, "source_id": 501, "at": 0, "value_litres": 0, "kind": "actual", "supersedes": null},
+    {"service_point_id": 2, "meter_id": 21, "source_id": 202, "at": 1, "value_litres": 200, "kind": "estimated", "supersedes": null},
+    {"service_point_id": 4, "meter_id": 41, "source_id": 401, "at": 0, "value_litres": 600000, "kind": "actual", "supersedes": null},
+    {"service_point_id": 3, "meter_id": 31, "source_id": 302, "at": 1, "value_litres": 950, "kind": "actual", "supersedes": null},
+    {"service_point_id": 6, "meter_id": 61, "source_id": 601, "at": 0, "value_litres": 100, "kind": "actual", "supersedes": null},
+    {"service_point_id": 2, "meter_id": 21, "source_id": 203, "at": 1, "value_litres": 210, "kind": "corrected_actual", "supersedes": 202},
+    {"service_point_id": 5, "meter_id": 51, "source_id": 501, "at": 0, "value_litres": 0, "kind": "actual", "supersedes": null},
+    {"service_point_id": 3, "meter_id": 32, "source_id": 303, "at": 1, "value_litres": 10, "kind": "actual", "supersedes": null},
+    {"service_point_id": 1, "meter_id": 11, "source_id": 101, "at": 0, "value_litres": 999999, "kind": "actual", "supersedes": null},
+    {"service_point_id": 4, "meter_id": 41, "source_id": 402, "at": 1, "value_litres": 100000, "kind": "actual", "supersedes": null},
+    {"service_point_id": 5, "meter_id": 51, "source_id": 502, "at": 1, "value_litres": 10, "kind": "actual", "supersedes": null},
+    {"service_point_id": 2, "meter_id": 21, "source_id": 201, "at": 0, "value_litres": 100, "kind": "actual", "supersedes": null},
+    {"service_point_id": 3, "meter_id": 31, "source_id": 301, "at": 0, "value_litres": 900, "kind": "actual", "supersedes": null},
+    {"service_point_id": 6, "meter_id": 61, "source_id": 602, "at": 1, "value_litres": 180, "kind": "actual", "supersedes": null}
+  ],
+  "billed_intervals": [
+    {"service_point_id": 6, "interval_id": 60001, "start_at": 0, "end_at": 1, "issued_usage_litres": 50},
+    {"service_point_id": 2, "interval_id": 20002, "start_at": 1, "end_at": 2, "issued_usage_litres": 100},
+    {"service_point_id": 3, "interval_id": 30001, "start_at": 0, "end_at": 2, "issued_usage_litres": 100},
+    {"service_point_id": 1, "interval_id": 10001, "start_at": 0, "end_at": 1, "issued_usage_litres": 0},
+    {"service_point_id": 5, "interval_id": 50001, "start_at": 0, "end_at": 1, "issued_usage_litres": 10},
+    {"service_point_id": 4, "interval_id": 40001, "start_at": 0, "end_at": 1, "issued_usage_litres": 0},
+    {"service_point_id": 2, "interval_id": 20001, "start_at": 0, "end_at": 1, "issued_usage_litres": 100}
+  ],
+  "prior_adjustments": [
+    {"service_point_id": 6, "interval_id": 60001, "adjustment_id": 600001, "adjustment_litres": 20}
+  ]
+}
