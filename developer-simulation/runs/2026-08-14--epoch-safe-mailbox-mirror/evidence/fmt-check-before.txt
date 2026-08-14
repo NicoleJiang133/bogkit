@@ -1,0 +1,382 @@
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:945:
+         self.record(&TranscriptRecord::Checkpoint {
+             id: id.into(),
+             mailbox_id: mailbox.id.clone(),
+-            selected_uids: mailbox.messages.iter().take(3).map(|message| message.uid).collect(),
++            selected_uids: mailbox
++                .messages
++                .iter()
++                .take(3)
++                .map(|message| message.uid)
++                .collect(),
+         })
+     }
+ }
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:1162:
+     output.record(&TranscriptRecord::Disconnect)?;
+
+     if output.responses > unique_target {
+-        return Err(MirrorError::new("response budget is too small for required scenarios"));
++        return Err(MirrorError::new(
++            "response budget is too small for required scenarios",
++        ));
+     }
+     let mut duplicate_batches = Vec::new();
+     let mut duplicate_reserved = 0_usize;
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:1208:
+         output.batch(batch)?;
+     }
+     output.checkpoint("final-a", &mailboxes[active_indices[0]])?;
+-    output.checkpoint("final-b", &mailboxes[active_indices[active_indices.len() / 2]])?;
++    output.checkpoint(
++        "final-b",
++        &mailboxes[active_indices[active_indices.len() / 2]],
++    )?;
+
+     if output.responses != config.responses || duplicate_reserved != duplicate_target {
+-        return Err(MirrorError::new("generator failed to meet exact response budget"));
++        return Err(MirrorError::new(
++            "generator failed to meet exact response budget",
++        ));
+     }
+     let final_record_count = output.records + 1;
+     output.record(&TranscriptRecord::End {
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:1250:
+     let mut saw_end = false;
+     for line in reader.lines() {
+         if saw_end {
+-            return Err(TranscriptDiagnostic::new(
+-                "unknown",
+-                0,
+-                "record_after_end",
+-            ));
++            return Err(TranscriptDiagnostic::new("unknown", 0, "record_after_end"));
+         }
+         let line = line.map_err(|_| pending_diagnostic(&pending, "input_read_failed"))?;
+         let record: TranscriptRecord = serde_json::from_str(&line)
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:1272:
+                 pending = Some(Batch::new(batch_id, mailbox_id, sequence, Vec::new()));
+             }
+             TranscriptRecord::Response { event } => {
+-                let batch = pending
+-                    .as_mut()
+-                    .ok_or_else(|| TranscriptDiagnostic::new("unknown", 0, "response_without_batch"))?;
++                let batch = pending.as_mut().ok_or_else(|| {
++                    TranscriptDiagnostic::new("unknown", 0, "response_without_batch")
++                })?;
+                 batch.events.push(event);
+                 responses += 1;
+             }
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:1281:
+             TranscriptRecord::Commit { batch_id } => {
+-                let batch = pending
+-                    .take()
+-                    .ok_or_else(|| TranscriptDiagnostic::new("unknown", 0, "commit_without_batch"))?;
++                let batch = pending.take().ok_or_else(|| {
++                    TranscriptDiagnostic::new("unknown", 0, "commit_without_batch")
++                })?;
+                 if batch.batch_id != batch_id {
+                     return Err(TranscriptDiagnostic::new(
+                         batch.mailbox_id,
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:1290:
+                     ));
+                 }
+                 let reference_outcome = reference.apply(&batch).map_err(|_| {
+-                    TranscriptDiagnostic::new(&batch.mailbox_id, batch.sequence, "reference_rejected_batch")
++                    TranscriptDiagnostic::new(
++                        &batch.mailbox_id,
++                        batch.sequence,
++                        "reference_rejected_batch",
++                    )
+                 })?;
+                 let sqlite_outcome = sqlite.apply(&batch).map_err(|_| {
+-                    TranscriptDiagnostic::new(&batch.mailbox_id, batch.sequence, "sqlite_rejected_batch")
++                    TranscriptDiagnostic::new(
++                        &batch.mailbox_id,
++                        batch.sequence,
++                        "sqlite_rejected_batch",
++                    )
+                 })?;
+                 if reference_outcome != sqlite_outcome {
+                     return Err(TranscriptDiagnostic::new(
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:1316:
+                 if pending.is_some() {
+                     return Err(pending_diagnostic(&pending, "checkpoint_inside_batch"));
+                 }
+-                let expected = reference.checkpoint(&mailbox_id, &selected_uids).map_err(|_| {
+-                    TranscriptDiagnostic::new(&mailbox_id, 0, "reference_checkpoint_failed")
+-                })?;
+-                let actual = sqlite.checkpoint(&mailbox_id, &selected_uids).map_err(|_| {
+-                    TranscriptDiagnostic::new(&mailbox_id, 0, "sqlite_checkpoint_failed")
+-                })?;
++                let expected = reference
++                    .checkpoint(&mailbox_id, &selected_uids)
++                    .map_err(|_| {
++                        TranscriptDiagnostic::new(&mailbox_id, 0, "reference_checkpoint_failed")
++                    })?;
++                let actual = sqlite
++                    .checkpoint(&mailbox_id, &selected_uids)
++                    .map_err(|_| {
++                        TranscriptDiagnostic::new(&mailbox_id, 0, "sqlite_checkpoint_failed")
++                    })?;
+                 if actual != expected {
+                     return Err(TranscriptDiagnostic::new(
+                         mailbox_id,
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:1370:
+         .manifest()
+         .map_err(|_| TranscriptDiagnostic::new("unknown", 0, "sqlite_manifest_failed"))?;
+     if actual != expected {
+-        return Err(TranscriptDiagnostic::new(
+-            "unknown",
+-            0,
+-            "manifest_mismatch",
+-        ));
++        return Err(TranscriptDiagnostic::new("unknown", 0, "manifest_mismatch"));
+     }
+     Ok(VerificationSummary {
+         responses,
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:1409:
+     let mut saw_end = false;
+     for line in reader.lines() {
+         if saw_end {
+-            return Err(TranscriptDiagnostic::new(
+-                "unknown",
+-                0,
+-                "record_after_end",
+-            ));
++            return Err(TranscriptDiagnostic::new("unknown", 0, "record_after_end"));
+         }
+         let line = line.map_err(|_| pending_diagnostic(&pending, "input_read_failed"))?;
+         let record: TranscriptRecord = serde_json::from_str(&line)
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:1431:
+                 pending = Some(Batch::new(batch_id, mailbox_id, sequence, Vec::new()));
+             }
+             TranscriptRecord::Response { event } => {
+-                let batch = pending
+-                    .as_mut()
+-                    .ok_or_else(|| TranscriptDiagnostic::new("unknown", 0, "response_without_batch"))?;
++                let batch = pending.as_mut().ok_or_else(|| {
++                    TranscriptDiagnostic::new("unknown", 0, "response_without_batch")
++                })?;
+                 batch.events.push(event);
+                 responses += 1;
+             }
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:1440:
+             TranscriptRecord::Commit { batch_id } => {
+-                let batch = pending
+-                    .take()
+-                    .ok_or_else(|| TranscriptDiagnostic::new("unknown", 0, "commit_without_batch"))?;
++                let batch = pending.take().ok_or_else(|| {
++                    TranscriptDiagnostic::new("unknown", 0, "commit_without_batch")
++                })?;
+                 if batch.batch_id != batch_id {
+                     return Err(TranscriptDiagnostic::new(
+                         batch.mailbox_id,
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:1449:
+                     ));
+                 }
+                 let outcome = sqlite.apply(&batch).map_err(|_| {
+-                    TranscriptDiagnostic::new(&batch.mailbox_id, batch.sequence, "sqlite_rejected_batch")
++                    TranscriptDiagnostic::new(
++                        &batch.mailbox_id,
++                        batch.sequence,
++                        "sqlite_rejected_batch",
++                    )
+                 })?;
+                 if outcome == ApplyOutcome::Duplicate {
+                     duplicate_responses += batch.events.len();
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/lib.rs:1465:
+                 if pending.is_some() {
+                     return Err(pending_diagnostic(&pending, "checkpoint_inside_batch"));
+                 }
+-                sqlite.checkpoint(&mailbox_id, &selected_uids).map_err(|_| {
+-                    TranscriptDiagnostic::new(&mailbox_id, 0, "sqlite_checkpoint_failed")
+-                })?;
++                sqlite
++                    .checkpoint(&mailbox_id, &selected_uids)
++                    .map_err(|_| {
++                        TranscriptDiagnostic::new(&mailbox_id, 0, "sqlite_checkpoint_failed")
++                    })?;
+                 checkpoints += 1;
+             }
+             TranscriptRecord::Disconnect => {
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/main.rs:104:
+                 return Err("database already exists; use resume".to_owned());
+             }
+             let reader = open_transcript(&transcript)?;
+-            let summary = apply_transcript(reader, &database, false).map_err(|error| error.to_string())?;
++            let summary =
++                apply_transcript(reader, &database, false).map_err(|error| error.to_string())?;
+             print_json(&summary)
+         }
+         HarnessCommand::Resume {
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/main.rs:112:
+             database,
+         } => {
+             let reader = open_transcript(&transcript)?;
+-            let summary = apply_transcript(reader, &database, true).map_err(|error| error.to_string())?;
++            let summary =
++                apply_transcript(reader, &database, true).map_err(|error| error.to_string())?;
+             print_json(&summary)
+         }
+         HarnessCommand::Verify {
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/src/main.rs:123:
+                 return Err("verification database already exists".to_owned());
+             }
+             let reader = open_transcript(&transcript)?;
+-            let summary = verify_transcript(reader, &database).map_err(|error| error.to_string())?;
++            let summary =
++                verify_transcript(reader, &database).map_err(|error| error.to_string())?;
+             print_json(&summary)
+         }
+         HarnessCommand::Summarize { database } => {
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/tests/baseline_measure.rs:71:
+     let reopened = SqliteBaseline::open(&path).unwrap();
+     assert_eq!(reopened.checkpoint("mailbox-00", &[]).unwrap().total, 500);
+     let reopen_ms = reopen_started.elapsed().as_secs_f64() * 1000.0;
+-    let disk_bytes = [path.clone(), path.with_extension("sqlite-wal"), path.with_extension("sqlite-shm")]
+-        .iter()
+-        .filter_map(|entry| std::fs::metadata(entry).ok())
+-        .map(|metadata| metadata.len())
+-        .sum::<u64>();
++    let disk_bytes = [
++        path.clone(),
++        path.with_extension("sqlite-wal"),
++        path.with_extension("sqlite-shm"),
++    ]
++    .iter()
++    .filter_map(|entry| std::fs::metadata(entry).ok())
++    .map(|metadata| metadata.len())
++    .sum::<u64>();
+     println!(
+         "{{\"mailboxes\":20,\"messages\":10000,\"batches\":120,\"apply_ms\":{apply_ms:.3},\"responses_per_second\":{:.1},\"count_p50_us\":{p50_us},\"count_p95_us\":{p95_us},\"reopen_ms\":{reopen_ms:.3},\"disk_bytes\":{disk_bytes}}}",
+         10_020.0 / (apply_ms / 1000.0)
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/tests/cli.rs:23:
+         ])
+         .output()
+         .unwrap();
+-    assert!(generated.status.success(), "{}", String::from_utf8_lossy(&generated.stderr));
++    assert!(
++        generated.status.success(),
++        "{}",
++        String::from_utf8_lossy(&generated.stderr)
++    );
+
+     let verified = Command::new(binary)
+         .args(["verify", "--transcript"])
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/tests/cli.rs:32:
+         .arg(&database)
+         .output()
+         .unwrap();
+-    assert!(verified.status.success(), "{}", String::from_utf8_lossy(&verified.stderr));
++    assert!(
++        verified.status.success(),
++        "{}",
++        String::from_utf8_lossy(&verified.stderr)
++    );
+
+     let resumed = Command::new(binary)
+         .args(["resume", "--transcript"])
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/tests/cli.rs:41:
+         .arg(&database)
+         .output()
+         .unwrap();
+-    assert!(resumed.status.success(), "{}", String::from_utf8_lossy(&resumed.stderr));
++    assert!(
++        resumed.status.success(),
++        "{}",
++        String::from_utf8_lossy(&resumed.stderr)
++    );
+
+     let summarized = Command::new(binary)
+         .args(["summarize", "--database"])
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/tests/cli.rs:48:
+         .arg(&database)
+         .output()
+         .unwrap();
+-    assert!(summarized.status.success(), "{}", String::from_utf8_lossy(&summarized.stderr));
++    assert!(
++        summarized.status.success(),
++        "{}",
++        String::from_utf8_lossy(&summarized.stderr)
++    );
+     let manifest: serde_json::Value = serde_json::from_slice(&summarized.stdout).unwrap();
+     assert_eq!(manifest["live_messages"], 300);
+ }
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/tests/reference.rs:231:
+     assert_eq!(renamed.total, 1);
+
+     mirror
+-        .apply(&Batch::new(
+-            "delete",
+-            "stable-old",
+-            4,
+-            vec![Event::Delete],
+-        ))
++        .apply(&Batch::new("delete", "stable-old", 4, vec![Event::Delete]))
+         .unwrap();
+     assert!(mirror.checkpoint("stable-old", &[9]).is_err());
+
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/tests/sqlite_baseline.rs:55:
+     for batch in &batches {
+         reference.apply(batch).unwrap();
+         sqlite.apply(batch).unwrap();
+-        assert_eq!(sqlite.checkpoint("mailbox-a", &[5]).unwrap(), reference.checkpoint("mailbox-a", &[5]).unwrap());
++        assert_eq!(
++            sqlite.checkpoint("mailbox-a", &[5]).unwrap(),
++            reference.checkpoint("mailbox-a", &[5]).unwrap()
++        );
+     }
+     let commit = Batch::new(
+         "commit",
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/tests/sqlite_baseline.rs:69:
+     reference.apply(&commit).unwrap();
+     sqlite.apply(&commit).unwrap();
+     sqlite.apply(&commit).unwrap();
+-    assert_eq!(sqlite.checkpoint("mailbox-a", &[5]).unwrap(), reference.checkpoint("mailbox-a", &[5]).unwrap());
++    assert_eq!(
++        sqlite.checkpoint("mailbox-a", &[5]).unwrap(),
++        reference.checkpoint("mailbox-a", &[5]).unwrap()
++    );
+ }
+
+ #[test]
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/tests/sqlite_baseline.rs:121:
+     let mut reopened = SqliteBaseline::open(&path).unwrap();
+     let before = reopened.checkpoint("mailbox-a", &[10]).unwrap();
+     assert_eq!(before.uid_validity, 1);
+-    assert_eq!(before.selected[0].fingerprint, "11111111111111111111111111111111");
++    assert_eq!(
++        before.selected[0].fingerprint,
++        "11111111111111111111111111111111"
++    );
+     reopened
+         .apply(&Batch::new(
+             "commit",
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/tests/sqlite_baseline.rs:135:
+         .unwrap();
+     let after = reopened.checkpoint("mailbox-a", &[10]).unwrap();
+     assert_eq!(after.uid_validity, 2);
+-    assert_eq!(after.selected[0].fingerprint, "22222222222222222222222222222222");
++    assert_eq!(
++        after.selected[0].fingerprint,
++        "22222222222222222222222222222222"
++    );
+ }
+
+Diff in developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/tests/sqlite_concurrency.rs:59:
+                     let checkpoint = reader.checkpoint("mailbox-a", &selected).unwrap();
+                     assert_eq!(checkpoint.total, 20);
+                     assert_eq!(checkpoint.selected.len(), 20);
+-                    assert!(checkpoint
+-                        .selected
+-                        .iter()
+-                        .all(|message| message.fingerprint.starts_with(&format!("{:016x}", checkpoint.uid_validity))));
++                    assert!(checkpoint.selected.iter().all(|message| {
++                        message
++                            .fingerprint
++                            .starts_with(&format!("{:016x}", checkpoint.uid_validity))
++                    }));
+                 }
+             }));
+         }

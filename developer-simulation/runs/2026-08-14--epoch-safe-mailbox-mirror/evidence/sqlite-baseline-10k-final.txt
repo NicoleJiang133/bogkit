@@ -1,0 +1,10 @@
+Command:
+  cargo test --offline --locked --release --test baseline_measure -- --ignored --nocapture
+
+Fresh post-review result:
+  {"mailboxes":20,"messages":10000,"batches":120,"apply_ms":821.745,"responses_per_second":12193.6,"count_p50_us":2550,"count_p95_us":3593,"reopen_ms":2.347,"disk_bytes":2867200}
+
+Test result:
+  1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+
+This is one bounded local measurement on this host, not a portable performance guarantee.

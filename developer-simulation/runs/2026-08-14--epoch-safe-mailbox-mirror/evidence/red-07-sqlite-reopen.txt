@@ -1,0 +1,15 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+error[E0599]: no function or associated item named `open` found for struct `SqliteBaseline` in the current scope
+   --> tests/sqlite_baseline.rs:121:40
+    |
+121 |     let mut reopened = SqliteBaseline::open(&path).unwrap();
+    |                                        ^^^^ function or associated item not found in `SqliteBaseline`
+    |
+note: if you're trying to build a new `SqliteBaseline`, consider using `SqliteBaseline::create` which returns `Result<SqliteBaseline, MirrorError>`
+   --> src/lib.rs:382:5
+    |
+382 |     pub fn create(path: &Path) -> Result<Self, MirrorError> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `mailbox-mirror-lab` (test "sqlite_baseline") due to 1 previous error

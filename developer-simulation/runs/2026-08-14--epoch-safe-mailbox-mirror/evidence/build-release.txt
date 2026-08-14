@@ -1,0 +1,6 @@
+Command:
+  cargo build --offline --locked --release
+
+Fresh post-review result:
+  PASS
+  Finished release profile successfully.

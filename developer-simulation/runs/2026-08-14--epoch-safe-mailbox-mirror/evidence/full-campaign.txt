@@ -1,0 +1,43 @@
+Fresh post-review campaign, 2026-08-14
+
+Command:
+  cargo build --offline --locked --release
+Result: PASS; release profile finished.
+
+Command (run twice, changing the second output name):
+  target/release/mailbox-mirror-lab generate \
+    --output <temporary-run-dir>/full.ndjson \
+    --seed 43 --mailboxes 80 --messages 300000 --responses 600000
+Result:
+  {"seed":43,"mailboxes":80,"live_messages":300000,"responses":600000,"duplicate_responses":30000,"epoch_changes":12,"renames":20,"deletions_and_recreations":10,"disconnects":1,"records":612318}
+Both 94,332,125-byte outputs were byte-identical.
+SHA-256: f3b0ced58ff481f07f5d1105312c1728926606e8944f631481ead9789bef373f
+
+Command:
+  target/release/mailbox-mirror-lab verify \
+    --transcript <temporary-run-dir>/full.ndjson \
+    --database <temporary-run-dir>/full.sqlite
+Result excluding the 300,000-message canonical manifest:
+  {"responses":600000,"duplicate_responses":30000,"batches_applied":5855,"checkpoints":5,"disconnects":1,"elapsed_ms":49101,"mailboxes":80,"messages":300000}
+Reference and SQLite checkpoints and final canonical manifests matched exactly.
+Manifest summary SHA-256: ca7ad005908e1699ae14787552eb4880a2fa1c551845cffbcb528b6f30349909
+SQLite after completion: 114,429,952-byte database, 32,768-byte shared-memory sidecar, zero-byte WAL.
+
+Command:
+  target/release/mailbox-mirror-lab resume \
+    --transcript <temporary-run-dir>/full.ndjson \
+    --database <temporary-run-dir>/full.sqlite
+Result excluding manifest:
+  {"responses":600000,"duplicate_responses":599999,"batches_applied":0,"checkpoints":5,"disconnects":1,"elapsed_ms":35865,"mailboxes":80,"messages":300000}
+The one non-duplicate response is the explicit disconnect, which is not an admitted batch.
+Manifest summary SHA-256 after replay remained ca7ad005908e1699ae14787552eb4880a2fa1c551845cffbcb528b6f30349909.
+
+Evidence limits:
+- One full reference/SQLite seed was verified, not 30 full seeds.
+- Five generated checkpoints were compared, not a dense checkpoint campaign.
+- Peak RSS is not measured: the unchanged host timing approach cannot access kern.clockrate in this sandbox.
+- The 400 abrupt process-exit matrix and write amplification were not run.
+- No candidate resource comparison exists because no Fold candidate crossed the safety threshold.
+
+Cleanup:
+The two transcripts, database, WAL/SHM files, demo state, and build target were removed before handoff.

@@ -1,0 +1,22 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.28s
+     Running tests/reference.rs (target/debug/deps/reference-eca04c105f8a5b2f)
+
+running 1 test
+test replacement_epoch_stays_hidden_until_snapshot_commit ... FAILED
+
+failures:
+
+---- replacement_epoch_stays_hidden_until_snapshot_commit stdout ----
+
+thread 'replacement_epoch_stays_hidden_until_snapshot_commit' (57382358) panicked at tests/reference.rs:80:10:
+called `Result::unwrap()` on an `Err` value: MirrorError("event not implemented")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    replacement_epoch_stays_hidden_until_snapshot_commit
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--test reference`

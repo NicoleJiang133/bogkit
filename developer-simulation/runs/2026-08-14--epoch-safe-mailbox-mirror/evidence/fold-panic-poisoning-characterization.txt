@@ -1,0 +1,100 @@
+Command:
+  cargo test --offline --locked --test fold_reproducer -- --nocapture
+
+Expected characterization result:
+  PASS; 2 passed, including two caught panic messages from current main.
+  The first panic rejects the batch and its row is absent.
+  The second panic is the later same-stream write failing with `poisoned tx lock`.
+  This is not evidence that panic/catch-unwind is a safe application workaround.
+
+Raw output:
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.24
+   Compiling quote v1.0.47
+   Compiling libc v0.2.189
+   Compiling crossbeam-utils v0.8.22
+   Compiling cfg-if v1.0.4
+   Compiling serde_core v1.0.229
+   Compiling rustix v1.1.4
+   Compiling once_cell v1.21.4
+   Compiling crossbeam-epoch v0.9.20
+   Compiling semver v1.0.28
+   Compiling getrandom v0.4.3
+   Compiling scopeguard v1.2.0
+   Compiling byteorder v1.5.0
+   Compiling serde v1.0.229
+   Compiling lock_api v0.4.14
+   Compiling bitflags v2.13.1
+   Compiling parking_lot_core v0.9.12
+   Compiling thiserror v2.0.19
+   Compiling rustc_version v0.4.1
+   Compiling smallvec v1.15.2
+   Compiling equivalent v1.0.2
+   Compiling fastrand v2.5.0
+   Compiling utf8parse v0.2.2
+   Compiling byteorder-lite v0.1.0
+   Compiling heapless v0.7.17
+   Compiling log v0.4.33
+   Compiling compare v0.0.6
+   Compiling xxhash-rust v0.8.18
+   Compiling hashbrown v0.16.1
+   Compiling interval-heap v0.0.5
+   Compiling sfa v1.0.0
+   Compiling anstyle-parse v1.0.0
+   Compiling spin v0.9.9
+   Compiling quick_cache v0.6.24
+   Compiling hash32 v0.2.1
+   Compiling stable_deref_trait v1.2.1
+   Compiling varint-rs v2.2.1
+   Compiling colorchoice v1.0.5
+   Compiling zmij v1.0.23
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling rustc-hash v2.1.3
+   Compiling anstyle v1.0.14
+   Compiling self_cell v1.3.0
+   Compiling anstyle-query v1.1.5
+   Compiling hashbrown v0.14.5
+   Compiling byteview v0.10.2
+   Compiling anstream v1.0.0
+   Compiling flume v0.12.0
+   Compiling clap_lex v1.1.0
+   Compiling syn v3.0.3
+   Compiling syn v2.0.119
+   Compiling strsim v0.11.1
+   Compiling serde_json v1.0.151
+   Compiling heck v0.5.0
+   Compiling clap_builder v4.6.0
+   Compiling fxhash v0.2.1
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling anny v0.0.1 (<sanitized-main-checkout>/anny)
+   Compiling crossbeam-skiplist v0.1.3
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.19
+   Compiling errno v0.3.14
+   Compiling dashmap v6.2.1
+   Compiling enum_dispatch v0.3.13
+   Compiling clap_derive v4.6.1
+   Compiling tempfile v3.27.0
+   Compiling lsm-tree v3.1.8
+   Compiling cobs v0.3.0
+   Compiling clap v4.6.1
+   Compiling postcard v1.1.3
+   Compiling fjall v3.1.8
+   Compiling fold v0.0.1 (<sanitized-main-checkout>/fold)
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.28s
+     Running tests/fold_reproducer.rs (target/debug/deps/fold_reproducer-dc7cc6f42ff44b5c)
+
+running 2 tests
+
+thread 'caught_panic_rolls_back_rejected_row_but_poisons_the_same_streams_later_write' (57510018) panicked at tests/fold_reproducer.rs:34:13:
+reject batch
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'caught_panic_rolls_back_rejected_row_but_poisons_the_same_streams_later_write' (57510018) panicked at /Users/edouard/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/fjall-3.1.8/src/tx/single_writer/mod.rs:61:52:
+poisoned tx lock: PoisonError { .. }
+test caught_panic_rolls_back_rejected_row_but_poisons_the_same_streams_later_write ... ok
+test returning_an_error_from_fold_write_closure_still_commits_prior_writes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s

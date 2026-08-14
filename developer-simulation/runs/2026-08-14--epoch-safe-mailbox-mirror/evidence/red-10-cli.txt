@@ -1,0 +1,10 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+error: environment variable `CARGO_BIN_EXE_mailbox-mirror-lab` not defined at compile time
+ --> tests/cli.rs:9:18
+  |
+9 |     let binary = env!("CARGO_BIN_EXE_mailbox-mirror-lab");
+  |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = help: Cargo sets build script variables at run time. Use `std::env::var("CARGO_BIN_EXE_mailbox-mirror-lab")` instead
+
+error: could not compile `mailbox-mirror-lab` (test "cli") due to 1 previous error

@@ -1,0 +1,26 @@
+Fresh final cleanup and scope scan, 2026-08-14
+
+Verified absent:
+  developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror/target
+  <temporary-run-dir>
+  <temporary-run-dir>
+  <temporary-run-dir>
+
+Recursive output scans returned no:
+  target directory
+  *.sqlite, *.sqlite-wal, *.sqlite-shm, *.db, or *.ndjson file
+  *.tmp or *.log file
+  symlink
+  executable file
+  file larger than 1 MiB
+
+Output size before adding this small proof file:
+  400K simulation-output
+
+Scope result:
+  git diff --exit-code: PASS; no tracked difference
+  git status --short: ?? simulation-output/
+
+One formatting-only tracked diff discovered during cleanup was restored to the
+exact checked-in bytes before these commands. No core, example, root, Git,
+GitHub, or automation change remains.

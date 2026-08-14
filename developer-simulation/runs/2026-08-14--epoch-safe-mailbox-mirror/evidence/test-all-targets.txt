@@ -1,0 +1,17 @@
+Command:
+  cargo test --offline --locked --all-targets
+
+Fresh post-review result:
+  PASS: 22 passed; 0 failed; 1 explicitly ignored local measurement.
+
+Breakdown:
+  cli: 1 passed
+  fault_matrix: 4 passed
+  fold_reproducer: 2 passed
+  reference: 5 passed
+  sqlite_baseline: 4 passed
+  sqlite_concurrency: 1 passed
+  transcript: 5 passed
+  baseline_measure: 1 ignored in the ordinary suite; it passed separately in release mode
+
+The caught-panic characterization intentionally prints both the rejected-batch panic and the later poisoned-writer panic; both are caught and asserted, so the test passes while preserving current-main behavior.

@@ -1,0 +1,17 @@
+Command:
+  cargo test --offline --locked --test sqlite_baseline -- --nocapture
+
+Result:
+  PASS
+  4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+
+Focused cleanup regressions that passed:
+  delete_cleans_staged_messages_and_stays_clean_after_reopen
+  repeated_same_id_delete_recreate_cleans_incomplete_and_failed_rescans
+
+These tests query the physical staging_messages table. They prove that a Delete
+for the same stable mailbox ID removes incomplete staged rows in the admitted
+transaction, that a rejected rescan batch does not disturb the prior staging
+state even when its first event is valid and its later event fails, and that
+cleanup remains true after reopen and two delete/recreate
+lifecycles.

@@ -1,0 +1,12 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.36s
+     Running tests/reference.rs (target/debug/deps/reference-eca04c105f8a5b2f)
+
+running 5 tests
+test rejected_batch_has_no_partial_mutation ... ok
+test duplicate_complete_batch_is_idempotent ... ok
+test flag_replacement_and_expunge_update_materialized_counts ... ok
+test replacement_epoch_stays_hidden_until_snapshot_commit ... ok
+test rename_preserves_stable_id_but_recreated_name_does_not_resurrect_state ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

@@ -1,0 +1,43 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.24
+   Compiling libc v0.2.189
+   Compiling utf8parse v0.2.2
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling anstyle-query v1.1.5
+   Compiling colorchoice v1.0.5
+   Compiling anstyle v1.0.14
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling heck v0.5.0
+   Compiling strsim v0.11.1
+   Compiling rustix v1.1.4
+   Compiling anstyle-parse v1.0.0
+   Compiling clap_lex v1.1.0
+   Compiling serde_json v1.0.151
+   Compiling getrandom v0.4.3
+   Compiling serde v1.0.229
+   Compiling bitflags v2.13.1
+   Compiling anstream v1.0.0
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling clap_builder v4.6.0
+   Compiling cfg-if v1.0.4
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling syn v3.0.3
+   Compiling syn v2.0.119
+   Compiling errno v0.3.14
+   Compiling serde_derive v1.0.229
+   Compiling tempfile v3.27.0
+   Compiling clap_derive v4.6.1
+   Compiling clap v4.6.1
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+    Finished `release` profile [optimized] target(s) in 4.13s
+     Running tests/baseline_measure.rs (target/release/deps/baseline_measure-879170a463537005)
+
+running 1 test
+{"mailboxes":20,"messages":10000,"batches":120,"apply_ms":907.193,"responses_per_second":11045.1,"count_p50_us":2457,"count_p95_us":3179,"reopen_ms":4.283,"disk_bytes":2867200}
+test measure_sqlite_baseline_10k_messages ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.44s

@@ -1,0 +1,18 @@
+Fresh post-review CLI demonstration, seed 29
+
+generate:
+  30 mailboxes; 300 live messages; 1,200 responses; 60 duplicates; 12 epoch changes; 20 renames; 10 delete/recreate lifecycles; 1 disconnect; 1,476 framed records.
+
+verify:
+  1,200 responses; 60 duplicates; 133 admitted batches; 5 checkpoints; 1 disconnect; 733 ms; 30 mailboxes; 300 messages; exact reference/SQLite parity.
+
+resume against the completed database:
+  1,200 responses; 1,199 duplicates; 0 admitted batches; 5 checkpoints; 1 disconnect; 487 ms; 30 mailboxes; 300 messages.
+
+summarize:
+  30 mailboxes; 300 live messages.
+
+apply into a separate database:
+  1,200 responses; 60 duplicates; 133 admitted batches; 5 checkpoints; 1 disconnect; 709 ms; 30 mailboxes; 300 messages.
+
+All five commands exited successfully. The transcript and both databases plus sidecars were removed before handoff.

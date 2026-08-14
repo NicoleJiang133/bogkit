@@ -1,0 +1,46 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.54s
+     Running tests/sqlite_concurrency.rs (target/debug/deps/sqlite_concurrency-7bada252ae7afadd)
+
+running 1 test
+test eight_readers_never_observe_a_mixed_epoch_during_publication ... FAILED
+
+failures:
+
+---- eight_readers_never_observe_a_mixed_epoch_during_publication stdout ----
+
+thread '<unnamed>' (57425676) panicked at tests/sqlite_concurrency.rs:59:80:
+called `Result::unwrap()` on an `Err` value: MirrorError("sqlite query failed: Error: in prepare, database is locked (5)")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread '<unnamed>' (57425677) panicked at tests/sqlite_concurrency.rs:59:80:
+called `Result::unwrap()` on an `Err` value: MirrorError("sqlite query failed: Error: in prepare, database is locked (5)")
+
+thread '<unnamed>' (57425675) panicked at tests/sqlite_concurrency.rs:59:80:
+called `Result::unwrap()` on an `Err` value: MirrorError("sqlite query failed: Error: in prepare, database is locked (5)")
+
+thread '<unnamed>' (57425674) panicked at tests/sqlite_concurrency.rs:59:80:
+called `Result::unwrap()` on an `Err` value: MirrorError("sqlite query failed: Error: in prepare, database is locked (5)")
+
+thread '<unnamed>' (57425678) panicked at tests/sqlite_concurrency.rs:59:80:
+called `Result::unwrap()` on an `Err` value: MirrorError("sqlite query failed: Error: in prepare, database is locked (5)")
+
+thread '<unnamed>' (57425671) panicked at tests/sqlite_concurrency.rs:59:80:
+called `Result::unwrap()` on an `Err` value: MirrorError("sqlite query failed: Error: in prepare, database is locked (5)")
+
+thread '<unnamed>' (57425672) panicked at tests/sqlite_concurrency.rs:59:80:
+called `Result::unwrap()` on an `Err` value: MirrorError("sqlite query failed: Error: in prepare, database is locked (5)")
+
+thread '<unnamed>' (57425673) panicked at tests/sqlite_concurrency.rs:59:80:
+called `Result::unwrap()` on an `Err` value: MirrorError("sqlite query failed: Error: in prepare, database is locked (5)")
+
+thread 'eight_readers_never_observe_a_mixed_epoch_during_publication' (57425667) panicked at tests/sqlite_concurrency.rs:108:27:
+called `Result::unwrap()` on an `Err` value: Any { .. }
+
+
+failures:
+    eight_readers_never_observe_a_mixed_epoch_during_publication
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+error: test failed, to rerun pass `--test sqlite_concurrency`

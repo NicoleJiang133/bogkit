@@ -1,0 +1,8 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.33s
+     Running tests/transcript.rs (target/debug/deps/transcript-402a5a0879a2ffc7)
+
+running 1 test
+test chunk_sizes_from_one_byte_to_one_mebibyte_produce_the_same_manifest ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 3.63s

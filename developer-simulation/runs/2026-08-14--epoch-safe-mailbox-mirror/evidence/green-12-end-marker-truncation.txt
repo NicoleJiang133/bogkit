@@ -1,0 +1,8 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.67s
+     Running tests/transcript.rs (target/debug/deps/transcript-402a5a0879a2ffc7)
+
+running 1 test
+test every_record_position_in_a_small_transcript_is_truncation_detected ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.10s

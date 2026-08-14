@@ -1,0 +1,12 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+error[E0432]: unresolved imports `mailbox_mirror_lab::GeneratorConfig`, `mailbox_mirror_lab::generate_transcript`, `mailbox_mirror_lab::verify_transcript`
+ --> tests/transcript.rs:3:26
+  |
+3 | use mailbox_mirror_lab::{GeneratorConfig, SqliteBaseline, generate_transcript, verify_transcript};
+  |                          ^^^^^^^^^^^^^^^                  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^ no `verify_transcript` in the root
+  |                          |                                |
+  |                          |                                no `generate_transcript` in the root
+  |                          no `GeneratorConfig` in the root
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `mailbox-mirror-lab` (test "transcript") due to 1 previous error

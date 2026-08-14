@@ -1,0 +1,5 @@
+Command:
+  cargo fmt --check
+
+Fresh post-review result:
+  PASS; exit status 0 with no differences.

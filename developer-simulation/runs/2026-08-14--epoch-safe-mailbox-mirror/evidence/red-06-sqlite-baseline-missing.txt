@@ -1,0 +1,9 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+error[E0432]: unresolved import `mailbox_mirror_lab::SqliteBaseline`
+ --> tests/sqlite_baseline.rs:1:66
+  |
+1 | use mailbox_mirror_lab::{Batch, Event, Message, ReferenceMirror, SqliteBaseline};
+  |                                                                  ^^^^^^^^^^^^^^ no `SqliteBaseline` in the root
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `mailbox-mirror-lab` (test "sqlite_baseline") due to 1 previous error

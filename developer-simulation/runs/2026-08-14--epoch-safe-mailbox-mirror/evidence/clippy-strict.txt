@@ -1,0 +1,8 @@
+Command:
+  cargo clippy --offline --locked --all-targets --no-deps -- \
+    -D warnings -D clippy::all -D clippy::pedantic
+
+Fresh post-review result:
+  PASS
+  Checking mailbox-mirror-lab v0.1.0
+  Finished dev profile successfully.

@@ -1,0 +1,13 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.87s
+     Running tests/fault_matrix.rs (target/debug/deps/fault_matrix-2fa49698dd3ce5c7)
+
+running 2 tests
+test sqlite_integer_max_round_trips_for_every_unsigned_field ... ok
+test every_unsigned_field_rejects_sqlite_integer_max_plus_one_before_mutation ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.19s
+
+The final strengthened maximum test also reads the recorded batch sequences
+directly from SQLite, observes the exact decimal i64::MAX twice, and replays
+both maximum-sequence batches as duplicates in the reference and baseline.

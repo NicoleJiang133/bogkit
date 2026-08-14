@@ -1,0 +1,22 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.28s
+     Running tests/transcript.rs (target/debug/deps/transcript-402a5a0879a2ffc7)
+
+running 1 test
+test every_record_position_in_a_small_transcript_is_truncation_detected ... FAILED
+
+failures:
+
+---- every_record_position_in_a_small_transcript_is_truncation_detected stdout ----
+
+thread 'every_record_position_in_a_small_transcript_is_truncation_detected' (57432788) panicked at tests/transcript.rs:90:6:
+called `Result::unwrap()` on an `Err` value: TranscriptDiagnostic { mailbox_id: "unknown", sequence: 0, code: "invalid_json" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    every_record_position_in_a_small_transcript_is_truncation_detected
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `--test transcript`

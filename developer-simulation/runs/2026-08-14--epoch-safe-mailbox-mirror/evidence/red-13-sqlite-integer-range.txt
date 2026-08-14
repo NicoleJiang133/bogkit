@@ -1,0 +1,9 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+error[E0432]: unresolved import `mailbox_mirror_lab::SQLITE_INTEGER_MAX`
+ --> tests/fault_matrix.rs:2:59
+  |
+2 |     ApplyOutcome, Batch, Event, Message, ReferenceMirror, SQLITE_INTEGER_MAX, SqliteBaseline,
+  |                                                           ^^^^^^^^^^^^^^^^^^ no `SQLITE_INTEGER_MAX` in the root
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `mailbox-mirror-lab` (test "fault_matrix") due to 1 previous error

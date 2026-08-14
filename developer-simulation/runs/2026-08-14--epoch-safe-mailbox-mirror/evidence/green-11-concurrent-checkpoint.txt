@@ -1,0 +1,8 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.95s
+     Running tests/sqlite_concurrency.rs (target/debug/deps/sqlite_concurrency-7bada252ae7afadd)
+
+running 1 test
+test eight_readers_never_observe_a_mixed_epoch_during_publication ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s

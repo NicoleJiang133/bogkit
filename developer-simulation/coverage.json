@@ -662,13 +662,57 @@
       "components_used": [],
       "outcome": "no_fit",
       "report": "reports/2026-08-13.md"
+    },
+    {
+      "date": "2026-08-14",
+      "slug": "crash-safe-undo-history",
+      "persona": "vector-editor document-core maintainer with eight years of Swift and C++ and six months of Rust",
+      "domain": "crash-safe branching undo history for a local vector editor",
+      "constraints": [
+        "60,000 objects and 250,000 submitted actions with grouped edits, undo, redo, branching, and exact retry identity",
+        "canonical JSON remains the interchange format while acknowledged groups survive process exit",
+        "single writer with four read-only inspectors and a 20,000-group reversible compaction window",
+        "90-second, 256 MiB memory, 512 MiB storage, four-millisecond p95, and five-second reopen targets"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [
+        "fold"
+      ],
+      "outcome": "local_proof_only_no_production_fit",
+      "report": "reports/2026-08-14.md"
+    },
+    {
+      "date": "2026-08-14",
+      "slug": "epoch-safe-mailbox-mirror",
+      "persona": "desktop mail-sync maintainer with twelve years of Kotlin and SQLite and three months of Rust",
+      "domain": "epoch-safe disposable mailbox projection beside a remote authority",
+      "constraints": [
+        "80 mailboxes, 300,000 messages, and 600,000 decoded responses with duplicates and interrupted batches",
+        "exact UID-validity epoch isolation, stable identity lifecycle, cursor monotonicity, and atomic old-or-new visibility",
+        "one writer, eight concurrent readers, 384 MiB memory, and storage within 1.5 times SQLite",
+        "75-second processing, ten-millisecond count p95, five-second reopen, and deterministic recovery targets"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [
+        "fold"
+      ],
+      "outcome": "no_fit",
+      "report": "reports/2026-08-14.md"
     }
   ],
   "recurring_findings": [
     {
       "id": "document-storage-and-concurrency-boundaries",
       "category": "documentation gap",
-      "independent_trial_count": 28,
+      "independent_trial_count": 30,
       "confidence": "high",
       "candidate": true,
       "summary": "The public onboarding should distinguish embedded source-of-truth use from external databases and calendar or cache body-store handoffs, external network authorities and cooperative filesystem protocols, horizontal or partitioned deployment, durable leases and ordered purges, strict disk quotas, raw-flash firmware and fixed controller images, atomic broker-offset ownership, exact recursive graph workloads, and bounded stateless stream or geometry transformations that do not benefit from durable state.",
@@ -701,13 +745,15 @@
         "dns-change-gate",
         "midi-scheduler-rt-model",
         "multi-carrier-return-refund-reconciler",
-        "municipal-water-meter-billing-repair"
+        "municipal-water-meter-billing-repair",
+        "crash-safe-undo-history",
+        "epoch-safe-mailbox-mirror"
       ]
     },
     {
       "id": "component-selective-project-scaffold",
       "category": "API friction",
-      "independent_trial_count": 14,
+      "independent_trial_count": 15,
       "confidence": "high",
       "candidate": true,
       "summary": "Developers with Fold-only or no-component scenarios avoid the all-components starter or project scaffold because it adds unrelated crates and setup.",
@@ -726,7 +772,8 @@
         "repair-cafe-kiosk",
         "receiving-slot-admission",
         "dns-change-gate",
-        "midi-scheduler-rt-model"
+        "midi-scheduler-rt-model",
+        "crash-safe-undo-history"
       ]
     },
     {
@@ -750,13 +797,14 @@
     {
       "id": "fold-wtx-panic-writer-poisoning",
       "category": "correctness defect",
-      "independent_trial_count": 1,
+      "independent_trial_count": 2,
       "confidence": "high",
       "candidate": true,
       "summary": "Catching a panic resumed by Fold's write transaction preserves committed data but poisons Fjall's single-writer lock, so every later write in the same process panics.",
       "smallest_improvement": "Drop the underlying write transaction before resuming the user panic, then add Stream and KeyedStream regressions that prove rollback and a successful later write.",
       "sources": [
-        "support-case-finder"
+        "support-case-finder",
+        "epoch-safe-mailbox-mirror"
       ]
     },
     {

@@ -1,0 +1,10 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running tests/transcript.rs (target/debug/deps/transcript-402a5a0879a2ffc7)
+
+running 4 tests
+test unterminated_batch_reports_only_mailbox_and_sequence_and_mutates_nothing ... ok
+test every_record_position_in_a_small_transcript_is_truncation_detected ... ok
+test generated_transcript_is_deterministic_and_matches_both_models ... ok
+test applying_then_resuming_the_same_transcript_is_idempotent ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.39s

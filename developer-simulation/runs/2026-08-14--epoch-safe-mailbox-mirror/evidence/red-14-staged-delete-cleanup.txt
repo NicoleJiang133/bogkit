@@ -1,0 +1,24 @@
+   Compiling mailbox-mirror-lab v0.1.0 (developer-simulation/runs/2026-08-14--epoch-safe-mailbox-mirror)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s
+     Running tests/sqlite_baseline.rs (target/debug/deps/sqlite_baseline-f7d1c60cfa4c1c11)
+
+running 1 test
+test delete_cleans_staged_messages_and_stays_clean_after_reopen ... FAILED
+
+failures:
+
+---- delete_cleans_staged_messages_and_stays_clean_after_reopen stdout ----
+
+thread 'delete_cleans_staged_messages_and_stays_clean_after_reopen' (57515035) panicked at tests/sqlite_baseline.rs:218:5:
+assertion `left == right` failed
+  left: 1
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    delete_cleans_staged_messages_and_stays_clean_after_reopen
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.04s
+
+error: test failed, to rerun pass `--test sqlite_baseline`
