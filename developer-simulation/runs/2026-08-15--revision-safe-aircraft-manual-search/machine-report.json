@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "trial": "revision-safe-offline-aircraft-maintenance-manual-search",
+  "decision": "no_fit",
+  "decision_code": "global_indexes_lack_query_eligibility_filter",
+  "review": {
+    "round": 1,
+    "initial_verdict": "rejected_until_fixed",
+    "finding": "document_identity_validation_incomplete_and_order_dependent",
+    "fix_status": "implemented_pending_scoped_re_review"
+  },
+  "fixture": {
+    "kind": "synthetic_bounded_reproducer",
+    "documents": 21,
+    "ineligible_documents": 20,
+    "eligible_documents": 1,
+    "baseline_candidate_limit": 20,
+    "baseline_eligible_results": 0,
+    "complete_ranking_candidates": 21,
+    "safe_eligible_results": 1
+  },
+  "gates": {
+    "eligibility_all_600": "not_run",
+    "active_revision_all_600": "not_run",
+    "identifier_recall_at_5": "not_run",
+    "symptom_recall_at_10": "not_run",
+    "paraphrase_recall_at_10": "not_run",
+    "recall_improvement": "not_run",
+    "latency_5000": "not_run",
+    "initial_build": "not_run",
+    "delta_activation": "missing_capability",
+    "peak_memory": "not_run",
+    "index_disk": "not_run",
+    "five_generation_hashes": "missing_capability",
+    "five_build_ordered_results": "not_run",
+    "sixteen_query_workers_during_update": "missing_capability",
+    "crash_atomic_generation_visibility": "missing_capability",
+    "zero_runtime_network": "pass_by_design_for_bounded_demo",
+    "exact_source_evidence": "pass_on_bounded_fixture",
+    "exact_bm25_candidate_cutoff_reproducer": "pass_on_bounded_fixture",
+    "duplicate_canonical_document_id_rejection": "pass_on_bounded_fixture",
+    "duplicate_ranked_document_id_rejection": "pass_on_bounded_fixture",
+    "duplicate_revision_id_rejection": "pass_on_bounded_fixture",
+    "two_active_revision_rejection": "pass_on_bounded_fixture",
+    "unknown_attribute_rejection": "pass_on_bounded_fixture",
+    "missing_metadata_rejection": "pass_on_bounded_fixture",
+    "deterministic_tie_break": "pass_on_bounded_fixture",
+    "valid_metadata_order_independence": "pass_on_bounded_fixture"
+  },
+  "verification": {
+    "acceptance_tests": 10,
+    "demo_tests": 1,
+    "exact_bm25_reproducer_tests": 1,
+    "failures": 0,
+    "review_fix_round": 1
+  },
+  "metrics": {
+    "identifier_recall_at_5_percent": null,
+    "symptom_recall_at_10_percent": null,
+    "paraphrase_recall_at_10_percent": null,
+    "combined_recall_improvement_percentage_points": null,
+    "latency_p95_ms": null,
+    "latency_p99_ms": null,
+    "initial_build_seconds": null,
+    "delta_activation_seconds": null,
+    "peak_process_bytes": null,
+    "index_bytes": null,
+    "generation_hashes": []
+  },
+  "components": {
+    "fold_bm25": "used_for_failure_reproducer",
+    "fold_transactions": "inspected_but_not_equivalent_to_generation_activation",
+    "anny_hnsw": "not_used_no_query_filter_surface",
+    "ese": "not_used_build_fetches_unchecksummed_mutable_remote_assets"
+  }
+}

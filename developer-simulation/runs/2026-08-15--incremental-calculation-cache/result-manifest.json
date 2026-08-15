@@ -1,0 +1,30 @@
+{
+  "fixture_populated_cells": 7,
+  "fixture_literal_cells": 2,
+  "fixture_formula_cells": 5,
+  "accepted_batches": 3,
+  "clean_builds": 5,
+  "chunk_sizes": [
+    1,
+    7,
+    64,
+    511,
+    4096
+  ],
+  "local_exactness": "Pass",
+  "local_determinism": "Pass",
+  "invalid_record_gate": "Pass",
+  "one_way_initialization_gate": "Pass",
+  "recovery_continuation_gate": "Pass",
+  "reader_tasks": 12,
+  "read_requests": 24000,
+  "mixed_generation_responses": 0,
+  "initial_build_microseconds": 172,
+  "batch_p95_microseconds": 31,
+  "batch_p99_microseconds": 31,
+  "recovery_replay_microseconds": 7191,
+  "observed_single_store_disk_bytes": 7570,
+  "observed_100_batch_store_disk_bytes": 67115339,
+  "observed_total_test_disk_bytes": 872513501,
+  "production_scale_gates": "NotRun"
+}

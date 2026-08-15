@@ -480,6 +480,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 
 [[package]]
+name = "financial-snapshot-trial"
+version = "0.1.0"
+dependencies = [
+ "fold",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "find-msvc-tools"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1171,6 +1180,13 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
+]
+
+[[package]]
+name = "revision-safe-manual-search-trial"
+version = "0.1.0"
+dependencies = [
+ "fold",
 ]
 
 [[package]]

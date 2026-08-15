@@ -706,13 +706,57 @@
       ],
       "outcome": "no_fit",
       "report": "reports/2026-08-14.md"
+    },
+    {
+      "date": "2026-08-15",
+      "slug": "incremental-calculation-cache",
+      "persona": "financial-planning document-core maintainer with nine years of C# and eight months of Rust",
+      "domain": "offline incremental calculation cache for a large financial-planning workbook",
+      "constraints": [
+        "append-only authoritative journal with exact signed 128-bit formula and error semantics",
+        "one million populated cells and 2.4 million dependency edges across 160 worksheets",
+        "one writer and twelve readers with complete-generation visibility and deterministic snapshots",
+        "strict crash, disk, memory, initial-build, reopen, and batch-latency gates"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [
+        "fold"
+      ],
+      "outcome": "no_fit",
+      "report": "reports/2026-08-15.md"
+    },
+    {
+      "date": "2026-08-15",
+      "slug": "revision-safe-aircraft-manual-search",
+      "persona": "aircraft-maintenance tablet search maintainer with eleven years of Kotlin and four months of Rust",
+      "domain": "revision- and applicability-safe offline aircraft-maintenance manual retrieval",
+      "constraints": [
+        "2.4 million revisions with hard query-specific aircraft and effective-time eligibility",
+        "exact source evidence and zero ineligible or superseded results",
+        "sixteen readers during atomic offline generation updates with fixed reproducible model assets",
+        "strict memory, disk, build, latency, crash, determinism, and privacy gates"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [
+        "fold"
+      ],
+      "outcome": "no_fit",
+      "report": "reports/2026-08-15.md"
     }
   ],
   "recurring_findings": [
     {
       "id": "document-storage-and-concurrency-boundaries",
       "category": "documentation gap",
-      "independent_trial_count": 30,
+      "independent_trial_count": 32,
       "confidence": "high",
       "candidate": true,
       "summary": "The public onboarding should distinguish embedded source-of-truth use from external databases and calendar or cache body-store handoffs, external network authorities and cooperative filesystem protocols, horizontal or partitioned deployment, durable leases and ordered purges, strict disk quotas, raw-flash firmware and fixed controller images, atomic broker-offset ownership, exact recursive graph workloads, and bounded stateless stream or geometry transformations that do not benefit from durable state.",
@@ -747,13 +791,15 @@
         "multi-carrier-return-refund-reconciler",
         "municipal-water-meter-billing-repair",
         "crash-safe-undo-history",
-        "epoch-safe-mailbox-mirror"
+        "epoch-safe-mailbox-mirror",
+        "incremental-calculation-cache",
+        "revision-safe-aircraft-manual-search"
       ]
     },
     {
       "id": "component-selective-project-scaffold",
       "category": "API friction",
-      "independent_trial_count": 15,
+      "independent_trial_count": 16,
       "confidence": "high",
       "candidate": true,
       "summary": "Developers with Fold-only or no-component scenarios avoid the all-components starter or project scaffold because it adds unrelated crates and setup.",
@@ -773,7 +819,8 @@
         "receiving-slot-admission",
         "dns-change-gate",
         "midi-scheduler-rt-model",
-        "crash-safe-undo-history"
+        "crash-safe-undo-history",
+        "incremental-calculation-cache"
       ]
     },
     {
@@ -817,6 +864,32 @@
       "smallest_improvement": "Document Postcard-compatible Serde shapes at every persisted-value entry point and replace serialization and deserialization unwraps with recoverable typed errors where an API-compatible path exists.",
       "sources": [
         "cold-chain-repair"
+      ]
+    },
+    {
+      "id": "query-time-filtered-search",
+      "category": "missing capability",
+      "independent_trial_count": 2,
+      "confidence": "high",
+      "candidate": true,
+      "summary": "BM25 and HNSW expose global bounded candidate readers without a query-time predicate or allowed-key set, so post-filtering can lose the only eligible result below the candidate cutoff.",
+      "smallest_improvement": "First document that BM25 and HNSW return global candidates and that bounded post-filtering can lose eligible records; then evaluate a narrow allowed-key or predicate design without inferring a general search subsystem.",
+      "sources": [
+        "support-case-finder",
+        "revision-safe-aircraft-manual-search"
+      ]
+    },
+    {
+      "id": "ese-hermetic-model-assets",
+      "category": "documentation gap",
+      "independent_trial_count": 2,
+      "confidence": "high",
+      "candidate": true,
+      "summary": "Clean ESE builds fetch mutable model and tokenizer assets without documented identity, checksum verification, cache placement, language scope, or a preseeded offline workflow.",
+      "smallest_improvement": "Document model identity, language scope, cache location, and first-build network behavior; add a preseeded offline recipe and pin immutable asset revisions with checksum verification before considering model-selection APIs.",
+      "sources": [
+        "support-case-finder",
+        "revision-safe-aircraft-manual-search"
       ]
     }
   ]
