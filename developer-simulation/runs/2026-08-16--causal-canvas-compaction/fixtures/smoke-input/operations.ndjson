@@ -1,0 +1,2 @@
+{"id":"alice-1","document_id":"canvas","actor_id":"alice","actor_sequence":1,"dependency_clock":{},"accepted_minute":1,"payload":{"kind":"create","object_id":"shape","object_kind":"rectangle"}}
+{"id":"alice-2","document_id":"canvas","actor_id":"alice","actor_sequence":2,"dependency_clock":{"alice":1},"accepted_minute":2,"payload":{"kind":"set_property","object_id":"shape","key":"fill","value":"blue"}}

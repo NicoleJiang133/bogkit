@@ -1,0 +1,21 @@
+[package]
+name = "transparency-checkpoint-verifier"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+ring = "0.17.14"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.150"
+
+[dev-dependencies]
+tempfile = "3.27.0"
+
+[lib]
+name = "transparency_checkpoint_verifier"
+path = "src/lib.rs"
+
+[[bin]]
+name = "transparency-checkpoint-verifier"
+path = "src/main.rs"

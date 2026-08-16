@@ -1,0 +1,9 @@
+{
+  "command": "target/release/causal-canvas-compaction replay fixtures/smoke-input STATE_DIR canvas 10",
+  "accepted_operations": 2,
+  "pending_operations": 0,
+  "snapshot_digest": "76c61f8f2526d8b03d4670463ce050471e19d5795d035b68867d53205a54e4c9",
+  "uncompacted_bytes": 405,
+  "compacted_bytes": 1020,
+  "note": "Permanent operation fingerprints and fixed generation overhead dominate this intentionally tiny smoke fixture."
+}

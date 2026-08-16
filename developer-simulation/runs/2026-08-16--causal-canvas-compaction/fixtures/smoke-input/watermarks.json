@@ -1,0 +1,8 @@
+[
+  {
+    "client_id": "browser-1",
+    "document_id": "canvas",
+    "acknowledged": { "alice": 2 },
+    "acknowledged_minute": 10
+  }
+]

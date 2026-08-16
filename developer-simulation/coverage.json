@@ -750,13 +750,55 @@
       ],
       "outcome": "no_fit",
       "report": "reports/2026-08-15.md"
+    },
+    {
+      "date": "2026-08-16",
+      "slug": "causal-canvas-compaction",
+      "persona": "collaborative-canvas synchronization maintainer with seven years of TypeScript and Go and nine months of Rust",
+      "domain": "causal multi-writer canvas-history compaction and replay",
+      "constraints": [
+        "PostgreSQL remains authoritative while existing operation IDs, merge rules, and canonical JSON remain unchanged",
+        "five million operations across 100 documents with duplicates, causal reordering, and 30-day offline clients",
+        "complete-generation visibility, deterministic replay, bounded untrusted input, and exact conflicting-ID rejection",
+        "two CPU cores, one GiB memory, 40 percent retained-byte ceiling, and strict latency and reopen gates"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [
+        "fold"
+      ],
+      "outcome": "no_fit",
+      "report": "reports/2026-08-16.md"
+    },
+    {
+      "date": "2026-08-16",
+      "slug": "transparency-checkpoint-verifier",
+      "persona": "certificate-transparency monitor maintainer with eight years of Go and security operations and four months of Rust",
+      "domain": "offline cryptographic transparency-checkpoint verification and crash-safe advancement",
+      "constraints": [
+        "trusted Go and SQLite baseline with exact signed-checkpoint, proof, cursor, and decision semantics",
+        "eight million leaf hashes, 4,000 checkpoints, bounded envelopes, and 10,000 labeled adversarial cases",
+        "fail-closed verification, deterministic pending advancement, auditable raw proof bytes, and old-or-new publication",
+        "two CPU cores, 256 MiB memory, no network, and strict replay, p95, reopen, and malformed-input gates"
+      ],
+      "components_considered": [
+        "fold",
+        "ese",
+        "anny"
+      ],
+      "components_used": [],
+      "outcome": "no_fit",
+      "report": "reports/2026-08-16.md"
     }
   ],
   "recurring_findings": [
     {
       "id": "document-storage-and-concurrency-boundaries",
       "category": "documentation gap",
-      "independent_trial_count": 32,
+      "independent_trial_count": 34,
       "confidence": "high",
       "candidate": true,
       "summary": "The public onboarding should distinguish embedded source-of-truth use from external databases and calendar or cache body-store handoffs, external network authorities and cooperative filesystem protocols, horizontal or partitioned deployment, durable leases and ordered purges, strict disk quotas, raw-flash firmware and fixed controller images, atomic broker-offset ownership, exact recursive graph workloads, and bounded stateless stream or geometry transformations that do not benefit from durable state.",
@@ -793,7 +835,9 @@
         "crash-safe-undo-history",
         "epoch-safe-mailbox-mirror",
         "incremental-calculation-cache",
-        "revision-safe-aircraft-manual-search"
+        "revision-safe-aircraft-manual-search",
+        "causal-canvas-compaction",
+        "transparency-checkpoint-verifier"
       ]
     },
     {
@@ -864,6 +908,19 @@
       "smallest_improvement": "Document Postcard-compatible Serde shapes at every persisted-value entry point and replace serialization and deserialization unwraps with recoverable typed errors where an API-compatible path exists.",
       "sources": [
         "cold-chain-repair"
+      ]
+    },
+    {
+      "id": "fold-fallible-storage-and-decode-apis",
+      "category": "API friction",
+      "independent_trial_count": 2,
+      "confidence": "high",
+      "candidate": true,
+      "summary": "Failure-aware consumers cannot handle several Fold open, keyspace, read, decode, commit, and checkpoint failures as typed errors because the convenience-only public paths panic.",
+      "smallest_improvement": "Add documented fallible variants for the existing storage and decoding boundaries while retaining convenience wrappers where useful.",
+      "sources": [
+        "causal-canvas-compaction",
+        "transparency-checkpoint-verifier"
       ]
     },
     {

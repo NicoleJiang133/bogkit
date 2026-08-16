@@ -1,0 +1,13 @@
+{
+  "command": "target/release/causal-canvas-compaction largest 40000 20000 STATE_DIR",
+  "objects": 40000,
+  "list_elements": 20000,
+  "build_ms": 103,
+  "compact_ms": 81,
+  "publish_ms": 36,
+  "open_ms": 69,
+  "compacted_bytes": 12529568,
+  "snapshot_digest": "0679fb3ee13f76b3af20a63e845767816e457fbf223f894b2626a852977aa5aa",
+  "sampled_peak_rss_kib": 195440,
+  "exit": 0
+}

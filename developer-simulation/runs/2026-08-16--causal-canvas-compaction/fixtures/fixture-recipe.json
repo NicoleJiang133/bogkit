@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "seed": 20260816,
+  "documents": 100,
+  "accepted_operations": 5000000,
+  "actors_per_document": 64,
+  "operations_per_document_min": 25000,
+  "operations_per_document_max": 75000,
+  "operation_kinds": [
+    "create",
+    "set_property",
+    "move",
+    "list_insert",
+    "list_delete",
+    "object_delete"
+  ],
+  "duplicate_delivery_percent": 8,
+  "causally_out_of_order_delivery_percent": 12,
+  "offline_actor_percent": 5,
+  "offline_days_min": 7,
+  "offline_days_max": 30,
+  "maximum_payload_bytes": 65536,
+  "generation_status": "recipe_only_not_generated",
+  "operation_corpus_sha256": null,
+  "reason": "The fresh post-fix 500000-operation representative run used 440688 KiB RSS while retaining full accepted history. Generating or replaying ten times that volume inside the 1 GiB trial envelope remained unsafe."
+}

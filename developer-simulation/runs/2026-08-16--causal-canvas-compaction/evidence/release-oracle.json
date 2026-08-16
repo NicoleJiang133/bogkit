@@ -1,0 +1,9 @@
+{
+  "command": "target/release/causal-canvas-compaction oracle 50 20 64",
+  "histories": 50,
+  "schedules_per_history": 20,
+  "comparisons": 1000,
+  "failures": 0,
+  "digest": "5a36a7120a4b1e4a9c8344d61b8f454bc0f7df191ccb560abb24e915b60e8141",
+  "scope": "reduced scalar oracle, not the unavailable TypeScript baseline"
+}

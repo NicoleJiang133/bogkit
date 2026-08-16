@@ -1,0 +1,10 @@
+{
+  "command": "target/release/causal-canvas-compaction workload 500000",
+  "operations": 500000,
+  "elapsed_ms": 776,
+  "batch_200_p95_us": 343,
+  "snapshot_digest": "99b1b7a23b9c0615736b3e86da409a6c66f3bc048d3980a674c89af99f1bc10a",
+  "sampled_peak_rss_kib": 440688,
+  "exit": 0,
+  "scope": "fresh post-fix single-threaded representative workload; 5,000,000 operations unrun because linear full-history storage remains unsafe to extrapolate within 1 GiB"
+}
