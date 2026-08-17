@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>rollcall</title>
+<style>
+  body { font: 15px/1.4 system-ui, sans-serif; margin: 0; background: #f6f3ee; color: #1b1b1b; }
+  #hero { min-height: 0; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+           padding: 12px 20px; border-bottom: 2px solid #1b1b1b; background: #fff; }
+  .stats { display: flex; gap: 24px; }
+  .stat .n { font-size: 22px; font-weight: 700; }
+  .stat .l { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #555; }
+  .fine { font-size: 12px; color: #555; padding: 6px 20px 10px; background: #fff; border-bottom: 1px solid #ddd; }
+  button { cursor: pointer; }
+  .header-actions { display: flex; gap: 8px; }
+  main { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; padding: 20px; }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  h2 { margin: 0 0 12px; font-size: 16px; }
+  .card { background: #fff; border: 1px solid #ccc; padding: 12px 14px; margin-bottom: 10px; }
+  .card h3 { margin: 0 0 6px; }
+  .ids { font-size: 12px; color: #333; word-break: break-all; }
+  .prs { margin-top: 8px; font-size: 13px; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .muted { color: #666; font-size: 12px; }
+  a { color: #0b57d0; }
+  .recap { margin-top: 10px; background: #f0ece4; padding: 8px; white-space: pre-wrap; font: inherit; }
+  .actions { margin-top: 8px; display: flex; gap: 8px; }
+</style>
+</head>
+<body>
+<div id="hero"></div>
+<header>
+  <div class="stats">
+    <div class="stat"><div class="n" id="people">0</div><div class="l">People</div></div>
+    <div class="stat"><div class="n" id="sources">0</div><div class="l">Sources</div></div>
+    <div class="stat"><div class="n" id="comparisons">342 vs 18,915</div><div class="l">Comparisons</div></div>
+  </div>
+  <div class="header-actions">
+    <button type="button" id="restore">Restore all</button>
+    <button type="button" id="refresh">Refresh from GitHub</button>
+  </div>
+</header>
+<p class="fine"><span id="avg">avg 0 µs / source</span> · <span id="avoided">avoided 0 embedding API calls</span></p>
+<p id="note" class="readonly-note" hidden></p>
+<main>
+  <section>
+    <h2>Identity clusters</h2>
+    <div id="clusters"></div>
+  </section>
+  <section id="feed-wrap">
+    <h2>Sources</h2>
+    <div id="feed"></div>
+    <h2 id="removed-title" hidden>Removed</h2>
+    <div id="removed"></div>
+  </section>
+</main>
+<script>
+const focus = location.pathname.startsWith("/p/")
+  ? decodeURIComponent(location.pathname.slice(3))
+  : null;
+const readonly = !!focus;
+
+if (readonly) {
+  document.getElementById("refresh").hidden = true;
+  document.getElementById("restore").hidden = true;
+  document.getElementById("feed-wrap").hidden = true;
+  document.getElementById("note").hidden = false;
+  document.getElementById("note").innerHTML = '<a href="/">Back to rollcall</a>';
+}
+
+let send = (line) => {};
+let polling = false;
+const recaps = {};
+const generating = {};
+
+function showRecap(card, text) {
+  const box = card.querySelector(".recap");
+  const copy = card.querySelector("[data-copyrecap]");
+  const gen = card.querySelector("[data-recap]");
+  box.hidden = false;
+  box.textContent = text;
+  copy.hidden = false;
+  if (gen) {
+    gen.disabled = false;
+    gen.textContent = "Generate recap";
+  }
+}
+
+function localRecap(c) {
+  const ids = (c.identifiers || []).join(", ");
+  const handles = (c.identifiers || [])
+    .filter((i) => i.startsWith("gh:"))
+    .map((i) => "@" + i.slice(3));
+  const at = handles.length ? handles.join(" ") : "@" + c.primary;
+  return c.primary + " is one person across these identifiers: " + ids + ".\nHackathon work: PRs " + (c.prs || []).map((n) => "#" + n).join(" ") + ".\n" + at;
+}
+
+function render(state) {
+  document.getElementById("people").textContent = state.people;
+  document.getElementById("sources").textContent = state.sources;
+  document.getElementById("comparisons").textContent = state.comparisons;
+  document.getElementById("avg").textContent = "avg " + (state.avg_us || 0) + " µs / source";
+  document.getElementById("avoided").textContent = "avoided " + (state.avoided || 0) + " embedding API calls";
+  document.getElementById("refresh").disabled = false;
+
+  let clusters = state.clusters;
+  if (focus) {
+    clusters = clusters.filter((c) => c.id === focus);
+    if (!clusters.length) {
+      document.getElementById("clusters").textContent = "Cluster not found.";
+      return;
+    }
+  }
+
+  const box = document.getElementById("clusters");
+  box.replaceChildren(...clusters.map((c) => {
+    const el = document.createElement("div");
+    el.className = "card";
+    el.setAttribute("data-cluster", c.id);
+    const ids = c.identifiers.map((i) => escapeHtml(i)).join("<br>");
+    const prs = (c.prs || []).map((n) => "#" + n).join(" ");
+    el.innerHTML =
+      "<div class='row'><h3>" + escapeHtml(c.primary) + "</h3>" +
+      (readonly ? "" : "<button type='button' data-copy='" + encodeURIComponent(c.id) + "'>copy link</button>") +
+      "</div><div class='ids'>" + ids + "</div>" +
+      "<div class='prs'>PRs: " + escapeHtml(prs || "none") + "</div>" +
+      "<div class='actions'><button type='button' data-recap>Generate recap</button>" +
+      "<button type='button' data-copyrecap hidden>copy</button></div>" +
+      "<pre class='recap' hidden></pre>";
+    const btn = el.querySelector("[data-copy]");
+    if (btn) btn.onclick = () => {
+      const url = location.origin + "/p/" + btn.getAttribute("data-copy");
+      navigator.clipboard.writeText(url);
+      btn.textContent = "copied";
+    };
+    const gen = el.querySelector("[data-recap]");
+    gen.onclick = () => {
+      generating[c.id] = true;
+      gen.disabled = true;
+      gen.textContent = "Generating…";
+      fetch("/recap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: c.id })
+      })
+        .then((r) => r.json())
+        .then((j) => { recaps[c.id] = j.text || localRecap(c); })
+        .catch(() => { recaps[c.id] = localRecap(c); })
+        .finally(() => {
+          generating[c.id] = false;
+          const card = document.querySelector('[data-cluster="' + CSS.escape(c.id) + '"]');
+          if (card) showRecap(card, recaps[c.id]);
+        });
+    };
+    el.querySelector("[data-copyrecap]").onclick = () => {
+      navigator.clipboard.writeText(recaps[c.id] || "");
+    };
+    if (recaps[c.id]) showRecap(el, recaps[c.id]);
+    else if (generating[c.id]) {
+      gen.disabled = true;
+      gen.textContent = "Generating…";
+    }
+    return el;
+  }));
+
+  if (!readonly) {
+    const feed = document.getElementById("feed");
+    feed.replaceChildren(...state.traces.map((t) => {
+      const el = document.createElement("div");
+      el.className = "card";
+      el.innerHTML =
+        "<div class='row'><div><strong>#" + t.number + "</strong> " + escapeHtml(t.title) +
+        "<div class='muted'>" + escapeHtml(t.author) + " · " + escapeHtml(t.created_at) + "</div></div>" +
+        "<button type='button' data-rm='" + t.number + "'>Delete</button></div>";
+      el.querySelector("[data-rm]").onclick = () => send("rm:" + t.number);
+      return el;
+    }));
+    const gone = state.removed || [];
+    document.getElementById("removed-title").hidden = gone.length === 0;
+    const rem = document.getElementById("removed");
+    rem.replaceChildren(...gone.map((t) => {
+      const el = document.createElement("div");
+      el.className = "card";
+      el.innerHTML =
+        "<div class='row'><div><strong>#" + t.number + "</strong> " + escapeHtml(t.title) +
+        "<div class='muted'>" + escapeHtml(t.author) + " · removed</div></div>" +
+        "<button type='button' data-undo='" + t.number + "'>Undo</button></div>";
+      el.querySelector("[data-undo]").onclick = () => send("undo:" + t.number);
+      return el;
+    }));
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+document.getElementById("refresh").onclick = () => {
+  document.getElementById("refresh").disabled = true;
+  send("refresh");
+};
+document.getElementById("restore").onclick = () => send("restore");
+
+function startPoll() {
+  if (polling) return;
+  polling = true;
+  send = (line) => {
+    if (line === "refresh") fetch("/refresh", { method: "POST" });
+    else if (line === "restore") fetch("/restore", { method: "POST" });
+    else if (line.startsWith("rm:")) fetch("/rm/" + line.slice(3), { method: "POST" });
+    else if (line.startsWith("undo:")) fetch("/undo/" + line.slice(5), { method: "POST" });
+  };
+  const tick = () => fetch("/api/state").then((r) => r.json()).then(render);
+  tick();
+  setInterval(tick, 2000);
+}
+
+try {
+  const ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws");
+  ws.onmessage = (e) => render(JSON.parse(e.data));
+  ws.onopen = () => { send = (line) => ws.send(line); };
+  ws.onclose = startPoll;
+  ws.onerror = startPoll;
+} catch (e) {
+  startPoll();
+}
+</script>
+</body>
+</html>
