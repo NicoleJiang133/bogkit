@@ -27,6 +27,9 @@
   .recap { margin-top: 6px; background: #f0ece4; padding: 8px; white-space: pre-wrap; font: inherit; }
   .post-platform { margin-top: 10px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #555; }
   .actions { margin-top: 8px; display: flex; gap: 8px; }
+  .stale-banner { font-size: 12px; color: #555; margin: 0 0 8px; }
+  .post-block.stale .recap, .post-block.stale .post-platform { opacity: 0.45; }
+  #host-recap.stale .recap, #host-recap.stale .post-platform { opacity: 0.45; }
 </style>
 </head>
 <body>
@@ -169,6 +172,8 @@
 </header>
 <p class="fine"><span id="avg">avg 0 µs / source</span> · <span id="avoided">avoided 0 embedding API calls</span> · naive = full pairwise recompute per mutation</p>
 <div id="host-recap" class="card" hidden style="margin:12px 20px">
+  <div id="host-stale" class="stale-banner" hidden>stale — a source this was built from was retracted</div>
+  <button type="button" id="host-regen" hidden>Regenerate</button>
   <div class="row">
     <span class="post-platform" id="host-platform"></span>
     <button type="button" id="host-copy">copy</button>
@@ -219,28 +224,73 @@ function postText(post) {
 function postPlatform(post) {
   return (post && typeof post === "object" && post.platform) ? post.platform : "linkedin";
 }
+function liveSourceIds(state) {
+  return new Set((state.traces || []).map((t) => t.key).filter(Boolean));
+}
+function isStale(post, state) {
+  const live = liveSourceIds(state || lastState);
+  return (post && post.sources || []).some((id) => !live.has(id));
+}
+function clusterSourceIds(c, state) {
+  const prs = new Set(c.prs || []);
+  const ids = c.identifiers || [];
+  return (state.traces || []).filter((t) => {
+    if (t.key && String(t.key).startsWith("chat:")) {
+      return ids.indexOf("~" + t.title) >= 0;
+    }
+    return prs.has(t.number);
+  }).map((t) => t.key);
+}
+function allSourceIds(state) {
+  return (state.traces || []).map((t) => t.key).filter(Boolean);
+}
+function wrapPost(j, sources) {
+  return { text: postText(j), platform: postPlatform(j), sources: sources || [] };
+}
 
 function showRecap(card, post) {
   const box = card.querySelector(".recap");
   const tag = card.querySelector(".post-platform");
   const copy = card.querySelector("[data-copyrecap]");
   const gen = card.querySelector("[data-recap]");
+  const block = card.querySelector(".post-block");
+  const banner = card.querySelector(".stale-banner");
+  const regen = card.querySelector("[data-regen]");
+  const stale = isStale(post, lastState);
   tag.hidden = false;
   tag.textContent = postPlatform(post);
   box.hidden = false;
   box.textContent = postText(post);
   copy.hidden = false;
+  if (block) block.classList.toggle("stale", stale);
+  if (banner) banner.hidden = !stale;
+  if (regen) regen.hidden = !stale;
   if (gen) {
     gen.disabled = false;
     gen.textContent = "Generate LinkedIn post";
   }
 }
 
+let lastState = { clusters: [] };
+
+function peerAts(c) {
+  const mine = new Set();
+  mine.add(String(c.primary || "").toLowerCase());
+  (c.identifiers || []).forEach((i) => {
+    if (i.startsWith("gh:")) mine.add(i.slice(3).toLowerCase());
+  });
+  const others = (lastState.clusters || [])
+    .filter((o) => o.id !== c.id)
+    .map((o) => o.primary)
+    .filter((p) => p && !mine.has(String(p).toLowerCase()))
+    .map((p) => "@" + p);
+  others.sort();
+  others.push("@flowercomputer");
+  return others.join(" ");
+}
+
 function localRecap(c) {
-  const handles = (c.identifiers || [])
-    .filter((i) => i.startsWith("gh:"))
-    .map((i) => "@" + i.slice(3));
-  const at = handles.length ? handles.join(" ") : "@" + c.primary;
+  const at = peerAts(c);
   const prs = (c.prs || []).map((n) => "#" + n);
   const work = prs.length ? prs.join(", ") : "the traces that were still standing";
   return {
@@ -255,6 +305,7 @@ function localRecap(c) {
 }
 
 function render(state) {
+  lastState = state;
   document.getElementById("people").textContent = state.people;
   document.getElementById("sources").textContent = state.sources;
   document.getElementById("comparisons").textContent = state.comparisons;
@@ -291,33 +342,39 @@ function render(state) {
       "<div class='prs'>PRs: " + escapeHtml(prs || "none") + "</div>" +
       "<div class='actions'><button type='button' data-recap>Generate LinkedIn post</button>" +
       "<button type='button' data-copyrecap hidden>copy</button></div>" +
+      "<div class='post-block'>" +
+      "<div class='stale-banner' hidden>stale — a source this was built from was retracted</div>" +
+      "<button type='button' data-regen hidden>Regenerate</button>" +
       "<div class='post-platform' hidden></div>" +
-      "<pre class='recap' hidden></pre>";
+      "<pre class='recap' hidden></pre></div>";
     const btn = el.querySelector("[data-copy]");
     if (btn) btn.onclick = () => {
       const url = location.origin + "/p/" + btn.getAttribute("data-copy");
       navigator.clipboard.writeText(url);
       btn.textContent = "copied";
     };
-    const gen = el.querySelector("[data-recap]");
-    gen.onclick = () => {
+    const requestRecap = () => {
       generating[c.id] = true;
       gen.disabled = true;
       gen.textContent = "Generating…";
+      const deps = clusterSourceIds(c, lastState);
       fetch("/recap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: c.id })
       })
         .then((r) => r.json())
-        .then((j) => { recaps[c.id] = j.text ? j : localRecap(c); })
-        .catch(() => { recaps[c.id] = localRecap(c); })
+        .then((j) => { recaps[c.id] = wrapPost(j.text ? j : localRecap(c), deps); })
+        .catch(() => { recaps[c.id] = wrapPost(localRecap(c), deps); })
         .finally(() => {
           generating[c.id] = false;
           const card = document.querySelector('[data-cluster="' + CSS.escape(c.id) + '"]');
           if (card) showRecap(card, recaps[c.id]);
         });
     };
+    const gen = el.querySelector("[data-recap]");
+    gen.onclick = requestRecap;
+    el.querySelector("[data-regen]").onclick = requestRecap;
     el.querySelector("[data-copyrecap]").onclick = () => {
       navigator.clipboard.writeText(postText(recaps[c.id]));
     };
@@ -361,6 +418,7 @@ function render(state) {
       return el;
     }));
   }
+  applyHostStale();
 }
 
 function escapeHtml(s) {
@@ -373,24 +431,41 @@ document.getElementById("refresh").onclick = () => {
   document.getElementById("refresh").disabled = true;
   send("refresh");
 };
-document.getElementById("restore").onclick = () => send("restore");
-document.getElementById("host-recap-btn").onclick = () => {
+let hostPost = null;
+function applyHostStale() {
+  const box = document.getElementById("host-recap");
+  if (!hostPost || box.hidden) return;
+  const stale = isStale(hostPost, lastState);
+  box.classList.toggle("stale", stale);
+  document.getElementById("host-stale").hidden = !stale;
+  document.getElementById("host-regen").hidden = !stale;
+}
+function requestHostRecap() {
   const btn = document.getElementById("host-recap-btn");
+  const regen = document.getElementById("host-regen");
   btn.disabled = true;
+  regen.disabled = true;
   btn.textContent = "Generating…";
+  const deps = allSourceIds(lastState);
   fetch("/host-recap", { method: "POST" })
     .then((r) => r.json())
     .then((j) => {
+      hostPost = wrapPost(j, deps);
       const box = document.getElementById("host-recap");
       box.hidden = false;
-      document.getElementById("host-platform").textContent = postPlatform(j);
-      document.getElementById("host-recap-text").textContent = postText(j);
+      document.getElementById("host-platform").textContent = postPlatform(hostPost);
+      document.getElementById("host-recap-text").textContent = postText(hostPost);
+      applyHostStale();
     })
     .finally(() => {
       btn.disabled = false;
+      regen.disabled = false;
       btn.textContent = "Host recap (LinkedIn)";
     });
-};
+}
+document.getElementById("restore").onclick = () => send("restore");
+document.getElementById("host-recap-btn").onclick = requestHostRecap;
+document.getElementById("host-regen").onclick = requestHostRecap;
 document.getElementById("host-copy").onclick = () => {
   navigator.clipboard.writeText(document.getElementById("host-recap-text").textContent || "");
 };

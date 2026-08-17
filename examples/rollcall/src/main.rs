@@ -539,7 +539,8 @@ async fn recap(State((_, rx)): State<AppState>, Json(req): Json<RecapReq>) -> Js
                 .map(|t| format!("#{} {}", t.number, t.title))
         })
         .collect();
-    let text = tokio::task::spawn_blocking(move || recap_text(&cluster, &titles))
+    let clusters = snap.clusters.clone();
+    let text = tokio::task::spawn_blocking(move || recap_text(&cluster, &titles, &clusters))
         .await
         .unwrap_or_else(|_| "Recap unavailable.".into());
     Json(RecapOut {
@@ -548,10 +549,10 @@ async fn recap(State((_, rx)): State<AppState>, Json(req): Json<RecapReq>) -> Js
     })
 }
 
-fn recap_text(cluster: &ClusterView, titles: &[String]) -> String {
-    match anthropic_recap(cluster, titles) {
+fn recap_text(cluster: &ClusterView, titles: &[String], clusters: &[ClusterView]) -> String {
+    match anthropic_recap(cluster, titles, clusters) {
         Ok(s) if !s.trim().is_empty() => s.trim().to_string(),
-        _ => template_recap(cluster, titles),
+        _ => template_recap(cluster, titles, clusters),
     }
 }
 
@@ -691,23 +692,28 @@ Rules:\n\
     anthropic_complete(&prompt, 700)
 }
 
-fn at_line(cluster: &ClusterView) -> String {
-    let mut handles: Vec<String> = cluster
-        .identifiers
+fn peer_ats(me: &ClusterView, clusters: &[ClusterView]) -> String {
+    let mut mine = HashSet::new();
+    mine.insert(me.primary.to_lowercase());
+    for id in &me.identifiers {
+        if let Some(h) = id.strip_prefix("gh:") {
+            mine.insert(h.to_lowercase());
+        }
+    }
+    let mut handles: Vec<String> = clusters
         .iter()
-        .filter_map(|i| i.strip_prefix("gh:"))
-        .map(|h| format!("@{h}"))
+        .filter(|c| c.id != me.id)
+        .map(|c| c.primary.as_str())
+        .filter(|p| !mine.contains(&p.to_lowercase()))
+        .map(|p| format!("@{p}"))
         .collect();
     handles.sort();
     handles.dedup();
-    if handles.is_empty() {
-        format!("@{}", cluster.primary)
-    } else {
-        handles.join(" ")
-    }
+    handles.push("@flowercomputer".into());
+    handles.join(" ")
 }
 
-fn template_recap(cluster: &ClusterView, titles: &[String]) -> String {
+fn template_recap(cluster: &ClusterView, titles: &[String], clusters: &[ClusterView]) -> String {
     let work = if titles.is_empty() {
         "the traces that were still standing when I looked".to_string()
     } else {
@@ -719,7 +725,7 @@ At Bog-a-thon III, the hackathon Flower Computer put on, I shipped this: {work}.
 What I'll take home is watching a cluster come apart when a source disappeared. Merge is the demo. Being able to take it back is the point.\n\n\
 {ats}",
         work = work,
-        ats = at_line(cluster),
+        ats = peer_ats(cluster, clusters),
     )
 }
 
@@ -746,7 +752,7 @@ struct AnthropicBlock {
     text: Option<String>,
 }
 
-fn anthropic_recap(cluster: &ClusterView, titles: &[String]) -> Result<String, ()> {
+fn anthropic_recap(cluster: &ClusterView, titles: &[String], clusters: &[ClusterView]) -> Result<String, ()> {
     let prompt = format!(
         "Write a LinkedIn post as this person, first person, ready to paste and publish.\n\
 Context: Bog-a-thon III, a hackathon run by Flower Computer. People built with bogkit (fold, ese, anny).\n\
@@ -770,7 +776,7 @@ Rules:\n\
         } else {
             titles.join("\n")
         },
-        ats = at_line(cluster),
+        ats = peer_ats(cluster, clusters),
     );
     anthropic_complete(&prompt, 500)
 }
