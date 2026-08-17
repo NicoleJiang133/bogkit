@@ -12,7 +12,7 @@ use axum::{
     response::Html,
     routing::{get, post},
 };
-use fold::pipeline::{FlatMap, Keyed, Map, terminal};
+use fold::pipeline::{FlatMap, Keyed, terminal};
 use fold::stream::KeyedStream;
 use serde::{Deserialize, Serialize};
 use tokio::sync::watch;
@@ -20,6 +20,9 @@ use tokio::sync::watch;
 const DIM: usize = ese::DIMENSIONS;
 const PRS: [u64; 9] = [1, 3, 4, 5, 6, 7, 8, 9, 11];
 const GH_PULLS: &str = "https://api.github.com/repos/flowercomputers/bogkit/pulls";
+// Cosine distance (1 - sim). Prefer a miss over a wrong merge.
+// Probe: Dan→Dan Brewster ~0.45; next-best wrong names ~0.90.
+const SEMANTIC_MAX_DIST: f32 = 0.55;
 
 #[derive(Deserialize)]
 struct User {
@@ -56,6 +59,11 @@ struct RawCommit {
     commit: CommitInner,
 }
 
+#[derive(Deserialize)]
+struct ChatName {
+    display: String,
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 struct CommitFact {
     login: Option<String>,
@@ -70,6 +78,8 @@ struct Trace {
     login: String,
     created_at: String,
     commits: Vec<CommitFact>,
+    #[serde(default)]
+    link: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -104,6 +114,7 @@ struct RollcallState {
     avg_us: u64,
     avoided: usize,
     clusters: Vec<ClusterView>,
+    unresolved: Vec<String>,
     traces: Vec<TraceView>,
     removed: Vec<TraceView>,
 }
@@ -117,6 +128,7 @@ impl Default for RollcallState {
             avg_us: 0,
             avoided: 0,
             clusters: Vec::new(),
+            unresolved: Vec::new(),
             traces: Vec::new(),
             removed: Vec::new(),
         }
@@ -124,8 +136,8 @@ impl Default for RollcallState {
 }
 
 enum Cmd {
-    Remove(u64),
-    Undo(u64),
+    Remove(String),
+    Undo(String),
     RestoreAll,
     Refresh,
 }
@@ -146,12 +158,27 @@ macro_rules! snapshot {
                 .map(|(e, _)| e)
                 .collect();
             let groups = connected(ids, live);
+            let mut unresolved: Vec<String> = groups
+                .iter()
+                .filter(|g| !g.is_empty() && g.iter().all(|id| id.starts_with("chat:")))
+                .flat_map(|g| {
+                    g.iter()
+                        .filter_map(|id| id.strip_prefix("chat:"))
+                        .map(|s| s.to_string())
+                })
+                .collect();
+            unresolved.sort();
             let clusters: Vec<ClusterView> = groups
                 .iter()
+                .filter(|g| {
+                    g.iter()
+                        .any(|id| id.starts_with("gh:") || id.starts_with("email:"))
+                })
                 .map(|g| {
                     let set: HashSet<&str> = g.iter().map(|s| s.as_str()).collect();
                     let mut prs: Vec<u64> = tlist
                         .iter()
+                        .filter(|(_, t)| t.login != "chat")
                         .filter(|(_, t)| identifiers(t).iter().any(|i| set.contains(i.as_str())))
                         .map(|(_, t)| t.number)
                         .collect();
@@ -160,12 +187,12 @@ macro_rules! snapshot {
                     ClusterView {
                         id: cluster_id(g),
                         primary: primary_name(g),
-                        identifiers: g.clone(),
+                        identifiers: g.iter().map(|id| display_ident(id)).collect(),
                         prs,
                     }
                 })
                 .collect();
-            let mut traces: Vec<TraceView> = tlist.iter().map(|(_, t)| trace_view(t)).collect();
+            let mut traces: Vec<TraceView> = tlist.iter().map(|(k, t)| trace_view(k, t)).collect();
             traces.sort_by(|a, b| b.created_at.cmp(&a.created_at));
 
             let mut chrono = tlist;
@@ -194,6 +221,7 @@ macro_rules! snapshot {
                 avg_us,
                 avoided: chrono.len(),
                 clusters,
+                unresolved,
                 traces,
                 removed: Vec::new(),
             }
@@ -223,9 +251,9 @@ fn commas(n: u64) -> String {
     out.chars().rev().collect()
 }
 
-fn trace_view(t: &Trace) -> TraceView {
+fn trace_view(key: &str, t: &Trace) -> TraceView {
     TraceView {
-        key: format!("pr:{}", t.number),
+        key: key.to_string(),
         number: t.number,
         title: t.title.clone(),
         author: t.login.clone(),
@@ -233,8 +261,8 @@ fn trace_view(t: &Trace) -> TraceView {
     }
 }
 
-fn removed_views(stash: &HashMap<u64, Trace>) -> Vec<TraceView> {
-    let mut v: Vec<TraceView> = stash.values().map(trace_view).collect();
+fn removed_views(stash: &HashMap<String, Trace>) -> Vec<TraceView> {
+    let mut v: Vec<TraceView> = stash.iter().map(|(k, t)| trace_view(k, t)).collect();
     v.sort_by(|a, b| b.created_at.cmp(&a.created_at));
     v
 }
@@ -248,10 +276,8 @@ fn ingest(
         db_path,
         (
             terminal::Table::new("traces"),
-            Map::new(
-                |d: &Keyed<String, Trace>| {
-                    Keyed::new(d.key.clone(), ese::encode_single(&d.val.title))
-                },
+            FlatMap::new(
+                |d: &Keyed<String, Trace>| hnsw_vecs(d),
                 terminal::search::Hnsw::<String, f32, Cosine, DIM>::new("vecs", Cosine, 42),
             ),
             FlatMap::new(
@@ -268,32 +294,83 @@ fn ingest(
             tx.upsert(&format!("pr:{n}"), &trace);
         }
     });
-    let mut stash: HashMap<u64, Trace> = HashMap::new();
+    let chats: Vec<ChatName> = serde_json::from_str(
+        &std::fs::read_to_string(format!("{dir}/chat-names.json")).unwrap(),
+    )
+    .unwrap();
+    for (i, chat) in chats.iter().enumerate() {
+        let q = ese::encode_single(&chat.display);
+        let hits = st.rtx(|(_, vecs, _)| vecs.search(&q));
+        let mut link = None;
+        for hit in &hits {
+            if hit.score >= SEMANTIC_MAX_DIST {
+                break;
+            }
+            if let Some((_, id)) = hit.val.split_once('|')
+                && id.starts_with("name:")
+            {
+                println!(
+                    "semantic {} -> {} dist={:.4}",
+                    chat.display, id, hit.score
+                );
+                link = Some(id.to_string());
+                break;
+            }
+        }
+        if link.is_none() {
+            let nearest = hits
+                .iter()
+                .find_map(|h| {
+                    h.val.split_once('|').and_then(|(_, id)| {
+                        id.starts_with("name:").then_some((id, h.score))
+                    })
+                });
+            match nearest {
+                Some((id, d)) => println!(
+                    "semantic {} -> (skip {} dist={:.4})",
+                    chat.display, id, d
+                ),
+                None => println!("semantic {} -> (no name hit)", chat.display),
+            }
+        }
+        let trace = Trace {
+            number: 0,
+            title: chat.display.clone(),
+            login: "chat".into(),
+            created_at: format!("2026-08-16T23:{i:02}:00Z"),
+            commits: vec![],
+            link,
+        };
+        st.wtx(|tx| {
+            tx.upsert(&format!("chat:{}", chat.display), &trace);
+        });
+    }
+    let mut stash: HashMap<String, Trace> = HashMap::new();
     let mut snap = snapshot!(st);
     snap.removed = removed_views(&stash);
     let _ = state_tx.send(snap);
 
     for cmd in rx {
         match cmd {
-            Cmd::Remove(n) => {
-                let old = st.wtx(|tx| tx.remove(&format!("pr:{n}")));
+            Cmd::Remove(key) => {
+                let old = st.wtx(|tx| tx.remove(&key));
                 if let Some(t) = old {
-                    stash.insert(n, t);
+                    stash.insert(key, t);
                 }
             }
-            Cmd::Undo(n) => {
-                if let Some(t) = stash.remove(&n) {
+            Cmd::Undo(key) => {
+                if let Some(t) = stash.remove(&key) {
                     st.wtx(|tx| {
-                        tx.upsert(&format!("pr:{n}"), &t);
+                        tx.upsert(&key, &t);
                     });
                 }
             }
             Cmd::RestoreAll => {
-                let items: Vec<(u64, Trace)> = stash.drain().collect();
+                let items: Vec<(String, Trace)> = stash.drain().collect();
                 if !items.is_empty() {
                     st.wtx(|tx| {
-                        for (n, t) in &items {
-                            tx.upsert(&format!("pr:{n}"), t);
+                        for (key, t) in &items {
+                            tx.upsert(key, t);
                         }
                     });
                 }
@@ -303,7 +380,7 @@ fn ingest(
                 let mut fresh = Vec::new();
                 for pr in pulls {
                     let key = format!("pr:{}", pr.number);
-                    if st.contains(&key) || stash.contains_key(&pr.number) {
+                    if st.contains(&key) || stash.contains_key(&key) {
                         continue;
                     }
                     fresh.push((key, fetch_trace(&pr)));
@@ -366,6 +443,7 @@ fn fetch_trace(pr: &Pr) -> Trace {
                 email: c.commit.author.email,
             })
             .collect(),
+        link: None,
     }
 }
 
@@ -393,8 +471,8 @@ async fn serve(cmd_tx: mpsc::Sender<Cmd>, state_rx: watch::Receiver<RollcallStat
         .route("/p/{cluster_id}", get(index))
         .route("/ws", get(ws_upgrade))
         .route("/api/state", get(api_state))
-        .route("/rm/{n}", post(rm))
-        .route("/undo/{n}", post(undo))
+        .route("/rm/{*key}", post(rm))
+        .route("/undo/{*key}", post(undo))
         .route("/restore", post(restore))
         .route("/refresh", post(refresh))
         .route("/recap", post(recap))
@@ -414,12 +492,12 @@ async fn api_state(State((_, rx)): State<AppState>) -> Json<RollcallState> {
     Json(rx.borrow().clone())
 }
 
-async fn rm(State((cmd_tx, _)): State<AppState>, Path(n): Path<u64>) {
-    cmd_tx.send(Cmd::Remove(n)).unwrap();
+async fn rm(State((cmd_tx, _)): State<AppState>, Path(key): Path<String>) {
+    cmd_tx.send(Cmd::Remove(src_key(&key))).unwrap();
 }
 
-async fn undo(State((cmd_tx, _)): State<AppState>, Path(n): Path<u64>) {
-    cmd_tx.send(Cmd::Undo(n)).unwrap();
+async fn undo(State((cmd_tx, _)): State<AppState>, Path(key): Path<String>) {
+    cmd_tx.send(Cmd::Undo(src_key(&key))).unwrap();
 }
 
 async fn restore(State((cmd_tx, _)): State<AppState>) {
@@ -600,9 +678,9 @@ async fn handle_socket(mut socket: WebSocket, (cmd_tx, mut state_rx): AppState) 
                 } else if line == "restore" {
                     Cmd::RestoreAll
                 } else if let Some(n) = line.strip_prefix("rm:") {
-                    Cmd::Remove(n.trim().parse().unwrap())
+                    Cmd::Remove(src_key(n.trim()))
                 } else if let Some(n) = line.strip_prefix("undo:") {
-                    Cmd::Undo(n.trim().parse().unwrap())
+                    Cmd::Undo(src_key(n.trim()))
                 } else {
                     continue;
                 };
@@ -634,6 +712,7 @@ fn load_trace(dir: &str, n: u64) -> Trace {
                 email: c.commit.author.email,
             })
             .collect(),
+        link: None,
     }
 }
 
@@ -674,7 +753,41 @@ fn noreply_handle(email: &str) -> Option<&str> {
     }
 }
 
+fn display_ident(id: &str) -> String {
+    if let Some(d) = id.strip_prefix("chat:") {
+        format!("~{d}")
+    } else {
+        id.to_string()
+    }
+}
+
+fn hnsw_vecs(d: &Keyed<String, Trace>) -> Vec<Keyed<String, [f32; DIM]>> {
+    let mut v = vec![Keyed::new(d.key.clone(), ese::encode_single(&d.val.title))];
+    if d.val.login != "chat" {
+        for id in identifiers(&d.val) {
+            if let Some(text) = id.strip_prefix("name:") {
+                v.push(Keyed::new(
+                    format!("{}|{id}", d.key),
+                    ese::encode_single(text),
+                ));
+            }
+        }
+    }
+    v
+}
+
+fn src_key(s: &str) -> String {
+    if !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()) {
+        format!("pr:{s}")
+    } else {
+        s.to_string()
+    }
+}
+
 fn identifiers(t: &Trace) -> Vec<String> {
+    if t.login == "chat" {
+        return vec![format!("chat:{}", t.title)];
+    }
     let mut ids = BTreeSet::new();
     ids.insert(gh(&t.login));
     for c in &t.commits {
@@ -692,6 +805,21 @@ fn identifiers(t: &Trace) -> Vec<String> {
 }
 
 fn edges_from(t: &Trace) -> Vec<Edge> {
+    if t.login == "chat" {
+        let mut out = Vec::new();
+        if let Some(link) = &t.link {
+            let a = format!("chat:{}", t.title);
+            if a != *link {
+                let (a, b) = if a <= *link {
+                    (a, link.clone())
+                } else {
+                    (link.clone(), a)
+                };
+                out.push(Edge { a, b, weight: 1 });
+            }
+        }
+        return out;
+    }
     let mut out = Vec::new();
     let pr_gh = gh(&t.login);
     for c in &t.commits {
