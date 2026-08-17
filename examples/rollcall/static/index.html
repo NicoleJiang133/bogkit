@@ -24,7 +24,8 @@
   .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
   .muted { color: #666; font-size: 12px; }
   a { color: #0b57d0; }
-  .recap { margin-top: 10px; background: #f0ece4; padding: 8px; white-space: pre-wrap; font: inherit; }
+  .recap { margin-top: 6px; background: #f0ece4; padding: 8px; white-space: pre-wrap; font: inherit; }
+  .post-platform { margin-top: 10px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #555; }
   .actions { margin-top: 8px; display: flex; gap: 8px; }
 </style>
 </head>
@@ -165,7 +166,7 @@
     <button type="button" id="refresh">Refresh from GitHub</button>
   </div>
 </header>
-<p class="fine"><span id="avg">avg 0 µs / source</span> · <span id="avoided">avoided 0 embedding API calls</span></p>
+<p class="fine"><span id="avg">avg 0 µs / source</span> · <span id="avoided">avoided 0 embedding API calls</span> · naive = full pairwise recompute per mutation</p>
 <p id="note" class="readonly-note" hidden></p>
 <main>
   <section>
@@ -203,26 +204,45 @@ let polling = false;
 const recaps = {};
 const generating = {};
 
-function showRecap(card, text) {
+function postText(post) {
+  return typeof post === "string" ? post : ((post && post.text) || "");
+}
+function postPlatform(post) {
+  return (post && typeof post === "object" && post.platform) ? post.platform : "linkedin";
+}
+
+function showRecap(card, post) {
   const box = card.querySelector(".recap");
+  const tag = card.querySelector(".post-platform");
   const copy = card.querySelector("[data-copyrecap]");
   const gen = card.querySelector("[data-recap]");
+  tag.hidden = false;
+  tag.textContent = postPlatform(post);
   box.hidden = false;
-  box.textContent = text;
+  box.textContent = postText(post);
   copy.hidden = false;
   if (gen) {
     gen.disabled = false;
-    gen.textContent = "Generate recap";
+    gen.textContent = "Generate LinkedIn post";
   }
 }
 
 function localRecap(c) {
-  const ids = (c.identifiers || []).join(", ");
   const handles = (c.identifiers || [])
     .filter((i) => i.startsWith("gh:"))
     .map((i) => "@" + i.slice(3));
   const at = handles.length ? handles.join(" ") : "@" + c.primary;
-  return c.primary + " is one person across these identifiers: " + ids + ".\nHackathon work: PRs " + (c.prs || []).map((n) => "#" + n).join(" ") + ".\n" + at;
+  const prs = (c.prs || []).map((n) => "#" + n);
+  const work = prs.length ? prs.join(", ") : "the traces that were still standing";
+  return {
+    platform: "linkedin",
+    text:
+      "I kept catching the same human under different names and got tired of pretending that was a filing problem.\n\n" +
+      "At Bog-a-thon III, the hackathon Flower Computer put on, I shipped " + work +
+      ". The stack was bogkit — fold holding the identity graph live, ese embedding the messy labels, anny finding neighbors instead of grinding every pair.\n\n" +
+      "What I'll take home is watching a cluster come apart when a source disappeared. Merge is the demo. Being able to take it back is the point.\n\n" +
+      at
+  };
 }
 
 function render(state) {
@@ -260,8 +280,9 @@ function render(state) {
       (readonly ? "" : "<button type='button' data-copy='" + encodeURIComponent(c.id) + "'>copy link</button>") +
       "</div><div class='ids'>" + ids + "</div>" +
       "<div class='prs'>PRs: " + escapeHtml(prs || "none") + "</div>" +
-      "<div class='actions'><button type='button' data-recap>Generate recap</button>" +
+      "<div class='actions'><button type='button' data-recap>Generate LinkedIn post</button>" +
       "<button type='button' data-copyrecap hidden>copy</button></div>" +
+      "<div class='post-platform' hidden></div>" +
       "<pre class='recap' hidden></pre>";
     const btn = el.querySelector("[data-copy]");
     if (btn) btn.onclick = () => {
@@ -280,7 +301,7 @@ function render(state) {
         body: JSON.stringify({ id: c.id })
       })
         .then((r) => r.json())
-        .then((j) => { recaps[c.id] = j.text || localRecap(c); })
+        .then((j) => { recaps[c.id] = j.text ? j : localRecap(c); })
         .catch(() => { recaps[c.id] = localRecap(c); })
         .finally(() => {
           generating[c.id] = false;
@@ -289,7 +310,7 @@ function render(state) {
         });
     };
     el.querySelector("[data-copyrecap]").onclick = () => {
-      navigator.clipboard.writeText(recaps[c.id] || "");
+      navigator.clipboard.writeText(postText(recaps[c.id]));
     };
     if (recaps[c.id]) showRecap(el, recaps[c.id]);
     else if (generating[c.id]) {

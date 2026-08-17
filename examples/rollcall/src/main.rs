@@ -203,13 +203,14 @@ macro_rules! snapshot {
             let mut ns = 0u128;
             for (_, t) in &chrono {
                 let src_ids = identifiers(t);
-                naive += src_ids.len() as u64 * universe.len() as u64;
+                universe.extend(src_ids);
+                let n = universe.len() as u64;
+                naive += n.saturating_mul(n.saturating_sub(1)) / 2;
                 let t0 = Instant::now();
                 let emb = ese::encode_single(&t.title);
                 let hits = vecs.search(&emb);
                 ns += t0.elapsed().as_nanos();
                 actual += hits.len() as u64;
-                universe.extend(src_ids);
             }
             let nsrc = chrono.len() as u128;
             let avg_us = if nsrc == 0 { 0 } else { (ns / nsrc / 1000) as u64 };
@@ -516,6 +517,7 @@ struct RecapReq {
 #[derive(Serialize)]
 struct RecapOut {
     text: String,
+    platform: String,
 }
 
 async fn recap(State((_, rx)): State<AppState>, Json(req): Json<RecapReq>) -> Json<RecapOut> {
@@ -523,6 +525,7 @@ async fn recap(State((_, rx)): State<AppState>, Json(req): Json<RecapReq>) -> Js
     let Some(cluster) = snap.clusters.iter().find(|c| c.id == req.id).cloned() else {
         return Json(RecapOut {
             text: "Cluster not found.".into(),
+            platform: "linkedin".into(),
         });
     };
     let titles: Vec<String> = cluster
@@ -538,7 +541,10 @@ async fn recap(State((_, rx)): State<AppState>, Json(req): Json<RecapReq>) -> Js
     let text = tokio::task::spawn_blocking(move || recap_text(&cluster, &titles))
         .await
         .unwrap_or_else(|_| "Recap unavailable.".into());
-    Json(RecapOut { text })
+    Json(RecapOut {
+        text,
+        platform: "linkedin".into(),
+    })
 }
 
 fn recap_text(cluster: &ClusterView, titles: &[String]) -> String {
@@ -565,18 +571,18 @@ fn at_line(cluster: &ClusterView) -> String {
 }
 
 fn template_recap(cluster: &ClusterView, titles: &[String]) -> String {
-    let ids = cluster.identifiers.join(", ");
     let work = if titles.is_empty() {
-        "No linked PRs in the current snapshot.".to_string()
+        "the traces that were still standing when I looked".to_string()
     } else {
         titles.join("; ")
     };
     format!(
-        "{} is one person across these identifiers: {}.\nHackathon work: {}.\n{}",
-        cluster.primary,
-        ids,
-        work,
-        at_line(cluster)
+        "I kept catching the same human under different names and got tired of pretending that was a filing problem.\n\n\
+At Bog-a-thon III, the hackathon Flower Computer put on, I shipped this: {work}. The stack was bogkit — fold holding the identity graph live, ese embedding the messy labels, anny finding neighbors instead of grinding every pair.\n\n\
+What I'll take home is watching a cluster come apart when a source disappeared. Merge is the demo. Being able to take it back is the point.\n\n\
+{ats}",
+        work = work,
+        ats = at_line(cluster),
     )
 }
 
@@ -609,14 +615,33 @@ fn anthropic_recap(cluster: &ClusterView, titles: &[String]) -> Result<String, (
         return Err(());
     }
     let prompt = format!(
-        "Write a 2-3 sentence English recap of this hackathon contributor, then one line of @handles only.\nName: {}\nIdentifiers: {}\nPRs: {}",
-        cluster.primary,
-        cluster.identifiers.join(", "),
-        titles.join("; ")
+        "Write a LinkedIn post as this person, first person, ready to paste and publish.\n\
+Context: Bog-a-thon III, a hackathon run by Flower Computer. People built with bogkit (fold, ese, anny).\n\
+Name: {name}\nIdentifiers: {ids}\n\
+Pull requests they actually shipped (use these titles, not vague summaries):\n{prs}\n\n\
+Rules:\n\
+- 100-150 words\n\
+- 3-5 short paragraphs with a blank line between paragraphs\n\
+- Open with one concrete hook. Never start with \"I'm excited to share\", \"Thrilled to announce\", \"I'm proud to\", or similar filler\n\
+- Middle: what they actually built, using the PR titles\n\
+- Close with one specific feeling or lesson — not empty thanks\n\
+- Sound like a person wrote it, not an AI\n\
+- No emoji\n\
+- At most two hashtags, none required\n\
+- Last line is ONLY these handles: {ats}\n\
+- Output the post only, no preamble or quotes",
+        name = cluster.primary,
+        ids = cluster.identifiers.join(", "),
+        prs = if titles.is_empty() {
+            "(none in the current snapshot)".to_string()
+        } else {
+            titles.join("\n")
+        },
+        ats = at_line(cluster),
     );
     let body = serde_json::to_string(&AnthropicReq {
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 300,
+        max_tokens: 500,
         messages: vec![AnthropicUser {
             role: "user",
             content: prompt,
