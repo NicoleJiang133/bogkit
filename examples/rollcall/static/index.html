@@ -162,11 +162,19 @@
     <div class="stat"><div class="n" id="comparisons">342 vs 18,915</div><div class="l">Comparisons</div></div>
   </div>
   <div class="header-actions">
+    <button type="button" id="host-recap-btn">Host recap (LinkedIn)</button>
     <button type="button" id="restore">Restore all</button>
     <button type="button" id="refresh">Refresh from GitHub</button>
   </div>
 </header>
 <p class="fine"><span id="avg">avg 0 µs / source</span> · <span id="avoided">avoided 0 embedding API calls</span> · naive = full pairwise recompute per mutation</p>
+<div id="host-recap" class="card" hidden style="margin:12px 20px">
+  <div class="row">
+    <span class="post-platform" id="host-platform"></span>
+    <button type="button" id="host-copy">copy</button>
+  </div>
+  <pre class="recap" id="host-recap-text"></pre>
+</div>
 <p id="note" class="readonly-note" hidden></p>
 <main>
   <section>
@@ -194,6 +202,7 @@ const readonly = !!focus;
 if (readonly) {
   document.getElementById("refresh").hidden = true;
   document.getElementById("restore").hidden = true;
+  document.getElementById("host-recap-btn").hidden = true;
   document.getElementById("feed-wrap").hidden = true;
   document.getElementById("note").hidden = false;
   document.getElementById("note").innerHTML = '<a href="/">Back to rollcall</a>';
@@ -365,6 +374,26 @@ document.getElementById("refresh").onclick = () => {
   send("refresh");
 };
 document.getElementById("restore").onclick = () => send("restore");
+document.getElementById("host-recap-btn").onclick = () => {
+  const btn = document.getElementById("host-recap-btn");
+  btn.disabled = true;
+  btn.textContent = "Generating…";
+  fetch("/host-recap", { method: "POST" })
+    .then((r) => r.json())
+    .then((j) => {
+      const box = document.getElementById("host-recap");
+      box.hidden = false;
+      document.getElementById("host-platform").textContent = postPlatform(j);
+      document.getElementById("host-recap-text").textContent = postText(j);
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.textContent = "Host recap (LinkedIn)";
+    });
+};
+document.getElementById("host-copy").onclick = () => {
+  navigator.clipboard.writeText(document.getElementById("host-recap-text").textContent || "");
+};
 
 function startPoll() {
   if (polling) return;

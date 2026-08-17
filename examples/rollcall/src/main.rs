@@ -477,6 +477,7 @@ async fn serve(cmd_tx: mpsc::Sender<Cmd>, state_rx: watch::Receiver<RollcallStat
         .route("/restore", post(restore))
         .route("/refresh", post(refresh))
         .route("/recap", post(recap))
+        .route("/host-recap", post(host_recap))
         .with_state((cmd_tx, state_rx));
 
     let addr = "0.0.0.0:3000";
@@ -554,6 +555,142 @@ fn recap_text(cluster: &ClusterView, titles: &[String]) -> String {
     }
 }
 
+#[derive(Deserialize)]
+struct ChatMsg {
+    display: String,
+    text: String,
+}
+
+async fn host_recap(State((_, rx)): State<AppState>) -> Json<RecapOut> {
+    let snap = rx.borrow().clone();
+    let text = tokio::task::spawn_blocking(move || host_recap_text(&snap))
+        .await
+        .unwrap_or_else(|_| "Recap unavailable.".into());
+    Json(RecapOut {
+        text,
+        platform: "linkedin".into(),
+    })
+}
+
+fn host_recap_text(snap: &RollcallState) -> String {
+    match anthropic_host_recap(snap) {
+        Ok(s) if !s.trim().is_empty() => s.trim().to_string(),
+        _ => template_host_recap(snap),
+    }
+}
+
+fn chat_transcript() -> String {
+    let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/data");
+    let raw = std::fs::read_to_string(format!("{dir}/chat-messages.json")).unwrap();
+    let msgs: Vec<ChatMsg> = serde_json::from_str(&raw).unwrap();
+    msgs.iter()
+        .map(|m| format!("{}: {}", m.display, m.text))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+fn all_ats(snap: &RollcallState) -> String {
+    let mut handles: Vec<String> = snap
+        .clusters
+        .iter()
+        .flat_map(|c| c.identifiers.iter())
+        .filter_map(|i| i.strip_prefix("gh:"))
+        .map(|h| format!("@{h}"))
+        .collect();
+    handles.sort();
+    handles.dedup();
+    handles.join(" ")
+}
+
+fn host_facts(snap: &RollcallState) -> (String, String, String) {
+    let clusters = snap
+        .clusters
+        .iter()
+        .map(|c| {
+            format!(
+                "- {} | {} | PRs {}",
+                c.primary,
+                c.identifiers.join(", "),
+                if c.prs.is_empty() {
+                    "none".into()
+                } else {
+                    c.prs
+                        .iter()
+                        .map(|n| format!("#{n}"))
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                }
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    let sources = snap
+        .traces
+        .iter()
+        .map(|t| {
+            if t.key.starts_with("chat:") {
+                format!("- chat: {}", t.title)
+            } else {
+                format!("- #{} {}", t.number, t.title)
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    (clusters, sources, chat_transcript())
+}
+
+fn template_host_recap(snap: &RollcallState) -> String {
+    let projects: Vec<String> = snap
+        .traces
+        .iter()
+        .filter(|t| !t.key.starts_with("chat:"))
+        .map(|t| format!("#{} {}", t.number, t.title))
+        .collect();
+    let work = if projects.is_empty() {
+        "the projects that made it onto the board".to_string()
+    } else {
+        projects.join("; ")
+    };
+    format!(
+        "Bog-a-thon III did not look like a conference. It looked like a chat that briefly became a potato-chip database, then a pile of PRs.\n\n\
+Flower Computer hosted it. {n} people showed up and built with bogkit — fold, ese, anny. The work on the table: {work}.\n\n\
+The room was small enough that a throwaway line about a potato chip as a database still counts as documentation. That is the recap.\n\n\
+{ats}",
+        n = snap.people,
+        work = work,
+        ats = all_ats(snap),
+    )
+}
+
+fn anthropic_host_recap(snap: &RollcallState) -> Result<String, ()> {
+    let (clusters, sources, chat) = host_facts(snap);
+    let prompt = format!(
+        "Write a LinkedIn post from the host's point of view about Bog-a-thon III, a hackathon run by Flower Computer. Third person. Ready to paste and publish.\n\
+People built with bogkit (fold, ese, anny).\n\
+Attendees (resolved people, count={n}):\n{clusters}\n\n\
+Sources / project titles:\n{sources}\n\n\
+Live chat from the room (use for atmosphere; quote if it helps, including the potato chip line):\n{chat}\n\n\
+Rules:\n\
+- Third person (the hosts describing the event), not a participant diary\n\
+- Mention how many people showed up and name the actual projects from the titles\n\
+- 100-180 words\n\
+- 3-5 short paragraphs with a blank line between paragraphs\n\
+- Open with one concrete hook. Never start with \"I'm excited to share\", \"Thrilled to announce\", \"We're proud to\", or similar filler\n\
+- Close with one specific observation, not empty thanks\n\
+- Sound like a person wrote it, not an AI\n\
+- No emoji\n\
+- At most two hashtags, none required\n\
+- Last line is ONLY these handles: {ats}\n\
+- Output the post only, no preamble or quotes",
+        n = snap.people,
+        clusters = clusters,
+        sources = sources,
+        chat = chat,
+        ats = all_ats(snap),
+    );
+    anthropic_complete(&prompt, 700)
+}
+
 fn at_line(cluster: &ClusterView) -> String {
     let mut handles: Vec<String> = cluster
         .identifiers
@@ -610,10 +747,6 @@ struct AnthropicBlock {
 }
 
 fn anthropic_recap(cluster: &ClusterView, titles: &[String]) -> Result<String, ()> {
-    let key = std::env::var("ANTHROPIC_API_KEY").map_err(|_| ())?;
-    if key.is_empty() {
-        return Err(());
-    }
     let prompt = format!(
         "Write a LinkedIn post as this person, first person, ready to paste and publish.\n\
 Context: Bog-a-thon III, a hackathon run by Flower Computer. People built with bogkit (fold, ese, anny).\n\
@@ -639,12 +772,20 @@ Rules:\n\
         },
         ats = at_line(cluster),
     );
+    anthropic_complete(&prompt, 500)
+}
+
+fn anthropic_complete(prompt: &str, max_tokens: u32) -> Result<String, ()> {
+    let key = std::env::var("ANTHROPIC_API_KEY").map_err(|_| ())?;
+    if key.is_empty() {
+        return Err(());
+    }
     let body = serde_json::to_string(&AnthropicReq {
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 500,
+        max_tokens,
         messages: vec![AnthropicUser {
             role: "user",
-            content: prompt,
+            content: prompt.to_string(),
         }],
     })
     .map_err(|_| ())?;
